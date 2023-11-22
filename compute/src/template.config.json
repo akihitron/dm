@@ -1,0 +1,41 @@
+{
+  "node_id": "<make your node id first>",
+  "api_key_id": "<make your api key first>",
+  "api_key_secret": "<make your api key first>",
+  "manipulator": {
+    "end_point": "http://localhost:3050/"
+  },
+  "driver": "docker",
+  "drivers": {
+    "docker": {
+      "end_point": null
+    },
+    "podman": {
+      "end_point": null
+    },
+    "lxd": {
+      "end_point": null
+    },
+    "kvm": {
+      "end_point": null
+    },
+    "xen": {
+      "end_point": null
+    },
+    "qemu": {
+      "end_point": null
+    }
+  },
+  "IPv4_CheckURL": "https://api.ipify.org",
+  "IPv6_CheckURL": "https://api64.ipify.org",
+
+  "use_ipv4": true,
+  "use_ipv6": false,
+  "ipv4_ports": {
+    "range01": {
+      "protocol": "tcp",
+      "range": [63000, 63030]
+    }
+  },
+  "ipv6_ports": {}
+}

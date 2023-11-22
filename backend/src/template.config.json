@@ -1,0 +1,69 @@
+{
+  "database": {
+    "driver": "sqlite",
+    "drivers": {
+      "mongodb": {
+        "end_point": "mongodb://<username>:<password>@localhost:27017/dmb"
+      },
+      "postgresql": {
+        "end_point": "postgresql://<username>:<password>@localhost:5432/dmb"
+      },
+      "sqlserver": {
+        "end_point": "sqlserver://<username>:<password>@localhost:1433/dmb"
+      },
+      "mysql": {
+        "end_point": "mysql://<username>:<password>@localhost:3306/dmb"
+      },
+      "sqlite": {
+        "end_point": "file:./workspace/sqlite.db"
+      }
+    }
+  },
+  "session_store": {
+    "driver": "memorystore",
+    "secret_key": "<your session secret key>",
+    "drivers": {
+      "redis": {
+        "host": "127.0.0.1",
+        "port": 6379,
+        "password": null
+      },
+      "memcached": {
+        "hosts": ["127.0.0.1:11211"]
+      },
+      "memorystore": {
+        
+      },
+      "mongodb": {
+        "end_point": "mongodb://<username>:<password>@localhost:27017/dmb"
+      },
+      "postgresql": {
+        "end_point": "postgresql://<username>:<password>@localhost:5432/dmb"
+      },
+      "sqlserver": {
+        "end_point": "sqlserver://<username>:<password>@localhost:1433/dmb"
+      },
+      "mysql": {
+        "end_point": "mysql://<username>:<password>@localhost:3306/dmb"
+      },
+      "sqlite": {
+        "end_point": "file:./workspace/sqlite.db"
+      }
+    }
+  },
+  
+  "IPv4_CheckURL": "https://api.ipify.org",
+  "IPv6_CheckURL": "https://api64.ipify.org",
+
+
+  "email": {
+    "driver": "gmail",
+    "drivers": {
+      "gmail": {
+        "user": "<your@gmail.com>",
+        "pass": "<your password>"
+      }
+    }
+  },
+  "default_users": []
+}

@@ -1,17 +1,4 @@
-# Hacoryoshka(Thinking of a name...)
-
-
-AIIT master's assignment cloud infrastructure special subject.
-
-### Requirements and restrictions
-
-1. Instance management
-2. Image management
-3. SSH key management
-4. Compute node management
-5. Port map management
-6. Don't use Docker's easy features.
-
+# Hacoryoshka
 
 ## Concept
 
@@ -76,134 +63,24 @@ Unfortunately, windows platform is still required VM or WSL.
 ## Configuration
 
 ```bash
-sudo mkdir -p /etc/dmb
-cp template.config.json /etc/dmb/config.json
+sudo mkdir -p /etc/${app_name}
+cp template.config.json /etc/${app_name}/config.json
 ```
 
-1. <font color='red'>Copy template.config.json to ~/.dmb/config.json and setup.</font>
+1. <font color='red'>Copy template.config.json to ~/.${app_name}/config.json and setup.</font>
 2. <font color='red'>Start front-end and back-end server and setup root user.</font>
 3. Create an entry point of compute node and issue an API key. After that setup config on compute node.
 
 #### Back-end configuration
 
 ```json
-{
-  "database": {
-    "driver": "sqlite",
-    "drivers": {
-      "mongodb": {
-        "end_point": "mongodb://<username>:<password>@localhost:27017/dmb"
-      },
-      "postgresql": {
-        "end_point": "postgresql://<username>:<password>@localhost:5432/dmb"
-      },
-      "sqlserver": {
-        "end_point": "sqlserver://<username>:<password>@localhost:1433/dmb"
-      },
-      "mysql": {
-        "end_point": "mysql://<username>:<password>@localhost:3306/dmb"
-      },
-      "sqlite": {
-        "end_point": "file:./workspace/sqlite.db"
-      }
-    }
-  },
-  "session_store": {
-    "driver": "memorystore",
-    "secret_key": "<your session secret key>",
-    "drivers": {
-      "redis": {
-        "host": "127.0.0.1",
-        "port": 6379,
-        "password": null
-      },
-      "memcached": {
-        "hosts": ["127.0.0.1:11211"]
-      },
-      "memorystore": {
-        
-      },
-      "mongodb": {
-        "end_point": "mongodb://<username>:<password>@localhost:27017/dmb"
-      },
-      "postgresql": {
-        "end_point": "postgresql://<username>:<password>@localhost:5432/dmb"
-      },
-      "sqlserver": {
-        "end_point": "sqlserver://<username>:<password>@localhost:1433/dmb"
-      },
-      "mysql": {
-        "end_point": "mysql://<username>:<password>@localhost:3306/dmb"
-      },
-      "sqlite": {
-        "end_point": "file:./workspace/sqlite.db"
-      }
-    }
-  },
-  
-  "IPv4_CheckURL": "https://api.ipify.org",
-  "IPv6_CheckURL": "https://api64.ipify.org",
-
-
-  "email": {
-    "driver": "gmail",
-    "drivers": {
-      "gmail": {
-        "user": "<your@gmail.com>",
-        "pass": "<your password>"
-      }
-    }
-  },
-  "default_users": []
-}
-
+${backend.config.json}
 ```
 
 #### Compute node configuration
 
 ```json
-{
-  "node_id": "<make your node id first>",
-  "api_key_id": "<make your api key first>",
-  "api_key_secret": "<make your api key first>",
-  "manipulator": {
-    "end_point": "http://localhost:3050/"
-  },
-  "driver": "docker",
-  "drivers": {
-    "docker": {
-      "end_point": null
-    },
-    "podman": {
-      "end_point": null
-    },
-    "lxd": {
-      "end_point": null
-    },
-    "kvm": {
-      "end_point": null
-    },
-    "xen": {
-      "end_point": null
-    },
-    "qemu": {
-      "end_point": null
-    }
-  },
-  "IPv4_CheckURL": "https://api.ipify.org",
-  "IPv6_CheckURL": "https://api64.ipify.org",
-
-  "use_ipv4": true,
-  "use_ipv6": false,
-  "ipv4_ports": {
-    "range01": {
-      "protocol": "tcp",
-      "range": [63000, 63030]
-    }
-  },
-  "ipv6_ports": {}
-}
-
+${compute_node.config.json}
 ```
 
 <br>
@@ -374,263 +251,7 @@ Just locate the deployed files on nginx after built.
 ## Model Definition
 
 ```javascript
-generator client {
-  provider = "prisma-client-js"
-}
-
-generator erd {
-  provider = "prisma-erd-generator"
-  output = "scheme.md"
-}
-
-datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
-}
-
-model user {
-  id             String @id @default(cuid())
-  email          String @unique
-  instance_limit Int    @default(10)
-  node_limit     Int    @default(3)
-  password_hash  String @unique
-  password_salt  String @unique
-  permission     String
-
-  activated                  Boolean   @default(false)
-  email_confirmation_hash    String?
-  email_confirmation_expires DateTime?
-  code_confirmation          String?
-  code_confirmation_expires  DateTime?
-
-  created_at DateTime @default(now())
-
-  ssh_keys  ssh_key[]
-  api_keys  api_key[]
-  compute_nodes      compute_node[]
-  managed_compute_nodes managed_compute_node[]
-  managed_images        managed_image[]
-  managed_instances     managed_instance[]
-
-  @@index([email, password_hash], name: "user_email_password_index")
-  @@index([email_confirmation_hash], name: "user_email_confirmation_hash_index")
-}
-
-model ssh_key {
-  id         String   @id @default(cuid())
-  key        String   @unique
-  name       String
-  user_id    String
-  created_at DateTime @default(now())
-
-
-  user       user   @relation(fields: [user_id], references: [id])
-  @@index([user_id], name: "ssh_key_user_id_index")
-}
-
-model api_key {
-  id         String   @id // Generated by the server
-  hash       String   @unique
-  salt       String   @unique
-  name       String   @default("")
-  user_id    String
-  created_at DateTime @default(now())
-
-  user       user   @relation(fields: [user_id], references: [id])
-  @@index([user_id], name: "api_key_user_id_index")
-}
-
-model image {
-  id               String   @id @default(cuid())
-  name             String?
-  status           String?
-  key              String?
-  url              String?
-  remote           String?
-  size             Int? // in MB
-  os_hint          String?
-  description      String?
-  published        Boolean?
-  node_id          String
-  native_timestamp DateTime @default(now())
-  created_at       DateTime @default(now())
-
-  compute_node       compute_node   @relation(fields: [node_id], references: [id])
-  instances          instance[]
-  managed_images     managed_image[]
-
-  // @@unique([node_id, url], name: "image_id_url_unique")
-  @@index([key], name: "image_key_index")
-  @@index([node_id], name: "image_node_id_index")
-}
-
-model compute_node {
-  id                    String   @id @default(cuid())
-  arch                  String?
-  available_as_gpu_node Boolean?
-  cpu                   Int?
-  cpu_info              String?
-  free_storage          Int? // in MB
-  gpu                   Boolean?
-  gpu_driver            String?
-  gpu_info              String?
-  ipv4                  String?
-  ipv4_ports            String? // TODO Length
-  ipv6                  String?
-  ipv6_ports            String? // TODO Length
-  manipulator_driver    String?
-  memory                Int? // in MB
-  name                  String   @default("Unknown")
-  nvidia_docker         Boolean?
-  platform              String?
-  status                String   @default("INITIALIZING")
-  total_storage         Int? // in MB
-  use_ipv4              Boolean?
-  use_ipv6              Boolean?
-  user_id               String
-
-  updated_at DateTime @default(now())
-  created_at DateTime @default(now())
-
-  user       user   @relation(fields: [user_id], references: [id])
-  images    image[]
-  instances instance[]
-  port_maps port_map[]
-
-  managed_compute_nodes managed_compute_node[]
-  managed_images        managed_image[]
-  managed_instances     managed_instance[]
-
-  @@index([user_id], name: "compute_node_user_id_index")
-}
-
-model instance {
-  id            String   @id @default(cuid())
-  name          String?
-  key           String?  @unique
-  ipv4          String?
-  ipv6          String?
-  local_ipv4    String?
-  local_ipv6    String?
-  cpu           Int?
-  memory        Int? // in MB
-  storage       Int? // in MB
-  total_storage Int? // in MB
-  status        String?
-  status_info   String?
-  description   String?
-  network_mode  String?
-  ssh_key_name  String?
-  ssh_key       String?
-  node_id       String
-  image_id      String?
-  base_image    String? // Cache name
-  created_at    DateTime @default(now())
-  updated_at    DateTime @default(now())
-
-  managed_instance managed_instance[]
-  port_maps port_map[]
-
-  compute_node compute_node @relation(fields: [node_id], references: [id])
-  image        image?       @relation(fields: [image_id], references: [id])
-
-  @@index([node_id], name: "instance_node_id_index")
-}
-
-model managed_compute_node {
-  id         String   @id @default(cuid())
-  node_id    String
-  user_id    String
-  created_at DateTime @default(now())
-
-  compute_node compute_node @relation(fields: [node_id], references: [id])
-  user         user         @relation(fields: [user_id], references: [id])
-
-  @@index([node_id], name: "managed_compute_node_node_id_index")
-  @@index([user_id], name: "managed_compute_node_user_id_index")
-}
-
-model managed_image {
-  id         String   @id @default(cuid())
-  image_id   String?
-  node_id    String
-  user_id    String
-  created_at DateTime @default(now())
-
-  compute_node compute_node @relation(fields: [node_id], references: [id])
-  user         user         @relation(fields: [user_id], references: [id])
-  image        image?       @relation(fields: [image_id], references: [id])
-
-  @@index([image_id], name: "managed_image_image_id_index")
-  @@index([node_id], name: "managed_image_node_id_index")
-  @@index([user_id], name: "managed_image_user_id_index")
-}
-
-model managed_instance {
-  id          String   @id @default(cuid())
-  instance_id String?
-  node_id     String
-  user_id     String
-  created_at  DateTime @default(now())
-
-  compute_node compute_node @relation(fields: [node_id], references: [id])
-  user         user         @relation(fields: [user_id], references: [id])
-  instance     instance?    @relation(fields: [instance_id], references: [id])
-
-
-  @@index([instance_id], name: "managed_instance_instance_id_index")
-  @@index([node_id], name: "managed_instance_node_id_index")
-  @@index([user_id], name: "managed_instance_user_id_index")
-}
-
-model port_map {
-  id          String   @id @default(cuid())
-  node_id     String
-  instance_id String?
-  is_ipv4     Boolean?
-  is_ipv6     Boolean?
-  managed     Boolean?
-  name        String?
-  port        Int?
-  protocol    String?
-  created_at  DateTime @default(now())
-
-  compute_node compute_node @relation(fields: [node_id], references: [id])
-  instance     instance?    @relation(fields: [instance_id], references: [id])
-
-  @@index([node_id], name: "port_map_node_id_index")
-}
-
-model log {
-  id          String   @id @default(cuid())
-  title       String?
-  description String?
-  host        String?
-  ip          String?
-  timestamp   DateTime @default(now())
-}
-
-model test_a {
-  id          String   @id @default(cuid())
-  title       String?
-  description String?
-  big_int     BigInt?
-  timestamp   DateTime @default(now())
-
-  test_b test_b[]
-}
-
-model test_b {
-  id          String   @id @default(cuid())
-  title       String?
-  description String?
-  test_a_id   String?
-  timestamp   DateTime @default(now())
-
-  test_a test_a? @relation(fields: [test_a_id], references: [id])
-  @@index([test_a_id], name: "test_b_test_a_id_index")
-}
-
+${model_def}
 ```
 
 <br>
@@ -839,7 +460,7 @@ GUI for MySQL
 - HeidiSQL(Windows)
 
 
-### Jetson memo
+### Jetson
 
 
 In jetpack 4.6, docker has permission problem.

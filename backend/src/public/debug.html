@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+<title>Debug Panel</title>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<link rel="stylesheet" href="help/readme.css">
+
+
+<body>
+
+    <br>
+    <form action="login" method="POST">
+        Email:
+        <input id="email" name="email" type="text" value="<change your name>" />
+        Password:
+        <input id="password" name="password" type="password" value="<change your passowrd>" />
+    </form>
+
+    <button onclick="post('login',{
+        email: document.getElementById('email').value,
+        password: document.getElementById('password').value,
+    }).then(res=>status())">Login</button>
+    <button onclick="post('logout',{
+        email: document.getElementById('email').value,
+        password: document.getElementById('password').value,
+    }).then(res=>status())">Logout</button> <br>
+    <button onclick="get('list_ssh_key',{}).then(j=>eval_console(j))">list_ssh_key</button>
+    <button onclick="get('list_port_map',{}).then(j=>eval_console(j))">list_port_map</button>
+    <button onclick="get('list_compute_node',{}).then(j=>eval_console(j))">list_compute_node</button>
+    <br>
+    <input type="text" id="ssh_key_name" /><input type="text" id="ssh_key_public" /><button onclick="post('register_ssh_key',{
+        name:document.getElementById('ssh_key_name').value,
+        key:document.getElementById('ssh_key_public').value
+    }).then(j=>eval_console(j))">Register SSH Key</button><br>
+    <br>
+    <textarea id="editor" style="width:500px;height:100px;color:white;background:black"></textarea>
+    <pre id="eval_console" style="color:white"></pre>
+
+    <h5>Session</h5>
+    <pre id="console" style="color:white">
+        test
+    </pre>
+
+    <h5>Cookie</h5>
+    <pre id="console2" style="color:white">
+        cookie
+    </pre>
+
+    <script>
+        function eval_console(text) {
+            document.getElementById("eval_console").innerText += typeof text == "string" ? text : JSON.stringify(text, null, "  ") + "\n";
+        }
+
+        function status() {
+            fetch("status").then(res => res.text()).then(data => {
+                document.getElementById("console").innerText = JSON.stringify(JSON.parse(data), null, "  ");
+            });
+        }
+        async function post(path, params) {
+            return await fetch(path, { method: 'post', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(params) }).then(res => res.json());
+        }
+        async function get(path, params) {
+            return await fetch(path + `?${new URLSearchParams(params).toString()}`, { method: 'get', headers: { 'Content-Type': 'application/json' } }).then(res => res.json());
+        }
+        status();
+        document.getElementById("console2").innerText = document.cookie;
+
+        let pushed = false;
+        document.addEventListener("keydown", (e) => {
+            if (document.activeElement == document.getElementById("editor")) {
+                if ((e.ctrlKey || e.metaKey) && e.code == "KeyR" && pushed == false) {
+                    pushed = true;
+                    e.preventDefault();
+                    e.stopPropagation();
+                    (async () => {
+                        document.getElementById("eval_console").innerText = "";
+                        localStorage.script = document.getElementById("editor").value;
+                        try { eval(`(async ()=>{${document.getElementById("editor").value}})()`) } catch (e) { console.error(e) }
+                    })();
+                    return;
+                }
+            }
+        });
+        document.addEventListener("keyup", (e) => {
+            if (document.activeElement == document.getElementById("editor")) {
+                if ((e.ctrlKey || e.metaKey) && e.code == "KeyR") {
+                    pushed = false;
+                    e.preventDefault();
+                    e.stopPropagation();
+                    return;
+                }
+            }
+        });
+        document.getElementById("editor").value = localStorage.script ?? "";
+    </script>
+
+    <a href="http://localhost:4050">Front-end http://localhost:4050</a><br>
+    <a href="http://localhost:3050">Back-end http://localhost:3050</a><br>
+
+    <br>
+</body>
+
+</html>

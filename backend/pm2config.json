@@ -1,0 +1,12 @@
+{
+    "name": "backend",
+    "script": "node dist/src/backend.js",
+
+    "env": {
+        "NODE_ENV": "development"
+    },
+
+    "env_production": {
+        "NODE_ENV": "production"
+    }
+}

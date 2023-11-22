@@ -1,0 +1,128 @@
+{
+	"app_name": "Hacoryoshka",
+	"common": {
+		"signin": "Sign in",
+		"signup": "Sign up",
+		"root_signup": "Create Root Account",
+		"reset_password": "Reset Password",
+		"signout": "Sign out",
+		"download": "Download",
+		"fullname": "Full name",
+		"email": "Email",
+		"phone": "Phone number",
+		"phone_4_digit": "Phone number 4 digits",
+		"password": "Password",
+		"new_password": "New password",
+		"confirm_password": "Confirm password",
+		"language": "Language",
+		"messages": "Messages",
+		"notifications": "Notifications",
+		"account": "Account",
+		"payments": "Payments",
+		"help": "Help",
+		"terms_and_policies": "Terms & Policies",
+		"user_agreement": "User Agreement",
+		"privacy_policy": "Privacy Policy",
+		"content_policy": "Content Policy",
+		"license": "License",
+		"subscriptions": "Subscriptions",
+		"plans": "Plans",
+		"prices": "Prices",
+		"next": "Next",
+		"previous": "Previous",
+		"debug": "Debug",
+		"exam": "Exam",
+		"END": ""
+	},
+	"dm": {
+		"edit": "Edit",
+		"upload_image": "Upload Image",
+		"header": "Hacoryoshka: Tiny Computing Resource Management",
+		"cancel": "Cancel",
+		"submit_confirmation": "Confirmation",
+		"submit_confirmation_desc": "Once submitted, it cannot be modified.\nAre you sure to submit?",
+		"submit": "Submit"
+	},
+	"left_menu": {
+		"ssh_keys": "SSH keys",
+		"images": "Images",
+		"instances": "Instances",
+		"compute_nodes": "Nodes",
+		"port_maps": "Port maps",
+		"members": "Members",
+		"users": "Users",
+		"logout": "Logout",
+		"account": "Account",
+		"END": ""
+	},
+	"payment": {
+		"title": "",
+		"payment_method_registration_title": "Payment Method Registration",
+		"payment_method_registration_description": " ",
+		"payment_method_submit": "Register",
+		"END": ""
+	},
+	"validation_code": {
+		"title": "Validation Code",
+		"description": "A one-time password has been emailed to you.\nPlease enter your verification code.",
+		"END": ""
+	},
+	"signup": {
+		"successful_message": "Confirmed your email address.",
+		"policy_agreement": "Registration implies agreement to our privacy policy",
+		"agree": "I'm agree the policy.",
+		"END": ""
+	},
+	"authentication": {
+		"selector_label": "Select an authentication type",
+		"email": "Email",
+		"phone": "EMail + Phone number",
+		"qr_code": "EMail + QR Code",
+		"web_authn": "EMail + WebAuthn",
+		"phone_number_description": "Please enter the last 4 digits of the registered phone number.",
+		"qr_code_description": "Please scan the QR code.",
+		"qr_code_issue": "Issue a QR code for authentication.",
+		"device_description": "Perform device authentication.",
+		"device_auth_error": "Device authentication failed.",
+		"device_auth_error2": "Device authentication cannot be performed on this device.",
+		"": "",
+		"sent_code": "We have issued a one-time passcode. Please check your email and enter the passcode.",
+		"submit": "Send",
+		"END": ""
+	},
+	"password_condition": {
+		"letter_description": "Password must contain the following",
+		"lower_case": "A lowercase letter",
+		"capital": "A capital (uppercase) letter",
+		"number": "A number",
+		"minimum_length": "Minimum 8 characters",
+		"END": ""
+	},
+	"reset_password": {
+		"successful_message": "The password has been changed.",
+		"END": ""
+	},
+	"login": {
+		"successful_message": "You have logged in successfully",
+		"forget_password": "Forget password?",
+		"dont_have_an_account": "Don't have an account? Sign Up",
+		"END": ""
+	},
+	"app": {
+		"worlds": "Rooms",
+		"characters": "Avators",
+		"create_character": "Create Avator",
+		"create_world": "Create Room",
+		"delete_character": "Delete Avator",
+		"delete_world": "Delete Room",
+		"join_to_world": "Join to Room",
+		"update_character": "Update Avator",
+		"update_world": "Update World",
+		"message": "Message",
+		"END": {}
+	},
+	"copyright": "Copyright © Aki.",
+	"author_webpage": "https://d3w.app/",
+	"policy_url": "https://www.freeprivacypolicy.com/live/a66af4f0-3584-4aa3-8023-be2b747c31fe",
+	"END": {}
+}

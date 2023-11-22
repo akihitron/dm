@@ -1,0 +1,22 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Debug with nodemon",
+            "type": "node",
+            "request": "launch",
+            "runtimeExecutable": "nodemon",
+            "program": "${workspaceFolder}/backend/src/backend.ts",
+            "cwd": "${workspaceFolder}/backend",
+            "restart": true,
+            "console": "integratedTerminal",
+            "args": ["--ext", "js,jsx,scss,html,ts,sh,css,md,json", "--exec", "swc-node" ],
+            "env": {
+                "DEBUG": "true",
+                "NODE_ENV": "development",
+                "NODE_CLUSTER":"1"
+            },
+            "internalConsoleOptions": "neverOpen"
+        }
+    ]
+}

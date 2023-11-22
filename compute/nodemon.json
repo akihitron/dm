@@ -1,0 +1,6 @@
+{
+    "watch": ["src","README.md","src/touch"],
+    "ext": ".ts,.js,.json,.html,.css,.scss,.sass,.less,.styl,.jpg,.png,.gif,.svg,.ico,.ttf,.woff,.woff2,.eot,.mp4,.mp3,.webm,.xml,.txt,.md,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.zip,.rar,.7z,.tar,.gz,.tgz,.exe,.msi,.dmg,.iso,.apk,.ipa,.deb,.rpm,.bin,.sh,.bat,.cmd,.coffee,.vue,.jsx,.tsx,.yaml,.yml,.toml,.ini,.env,.csv,.tsbuildinfo,.map,.lock,.patch,.patched,.patch.diff,.patch.diffed,.patched.diff,.patched.diffed,.patched.diff,.md",
+    "ignore": [],
+    "exec": "swc-node ./src/compute.ts"
+  }

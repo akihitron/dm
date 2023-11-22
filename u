@@ -1,0 +1,31 @@
+echo "================ Clear global packages ================"
+npm -g uninstall npm-upgrade
+npm -g uninstall nodemon
+npm -g uninstall pm2
+rm -rf ~/.pm2
+npm -g uninstall swc-node
+npm -g uninstall ts-node
+npm -g uninstall bun
+npm -g uninstall pkg
+
+echo "================ Install global packages ================"
+npm -g install npm-upgrade
+npm -g install nodemon
+npm -g install pm2
+npm -g install swc-node
+npm -g install ts-node
+npm -g install bun
+npm -g install pkg
+
+
+echo "================ Front end ================"
+cd frontend && rm -rf node_modules && npm-upgrade -p && npm install && npm dedup && npm audit
+cd ..
+
+echo "================ Back end ================"
+cd backend && rm -rf node_modules && npm-upgrade -p && npm install && npm dedup && npm audit
+#npm install @prisma/client@4.7.0
+cd ..
+
+echo "================ Compute node ================"
+cd compute && rm -rf node_modules && npm-upgrade -p && npm install && npm dedup && npm audit
