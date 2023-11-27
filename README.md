@@ -1,7 +1,10 @@
 # Hacoryoshka(Thinking of a name...)
 
-
 AIIT master's assignment cloud infrastructure special subject.
+
+Since this repository is for submission, a separate repository for maintenance will be forked. The fork destination will be linked to my personal account.
+
+Fork: [https://github.com/akihitron/dm](https://github.com/akihitron/dm)
 
 ### Requirements and restrictions
 
@@ -12,17 +15,13 @@ AIIT master's assignment cloud infrastructure special subject.
 5. Port map management
 6. Don't use Docker's easy features.
 
-
 ## Concept
 
-The basic concept is to easily manage front servers, backend servers, and GPU compute nodes for distributed on-premises servers and machine learning nodes in a global network, internal management, and access management.
-
-## End points
-
-- [Back-end(document/rest) http://localhost:3050/](http://localhost:3050/)
-- [Front-end http://localhost:4050/](http://localhost:4050/)
+The basic concept is to easily manage front servers, backend servers, and heterogeneous accelerator compute nodes for distributed on-premises servers and machine learning nodes in a global network, internal management, and access management.
 
 ## Software stack
+
+<br/>
 
 Farm is also faster framework instead of NextJS, but source map issue is critical glitch.
 Being fast is good, but being able to debug stably is even more important. Therefore, we recommend using Vite as your main framework, as it offers both speed and stability to a certain extent.
@@ -30,6 +29,11 @@ Being fast is good, but being able to debug stably is even more important. There
 | Front-end | Development         | Product       |
 | :-------- | :------------------ | :------------ |
 | Server    | Vite(SWC)/Farm(alt) | NGINX(Static) |
+
+Front-end endpoint will be [http://localhost:4050/](http://localhost:4050/).
+
+<br/>
+<br/>
 
 The bun package is faster development runtime, but its still unstable.
 A communication of Vite proxy and bun has buffer controlling bug.
@@ -41,6 +45,11 @@ A communication of Vite proxy and bun has buffer controlling bug.
 | Database | Prisma(MySQL/PostgreSQL/SQLite) | Prisma(MySQL/PostgreSQL/SQLite) |
 | Session  | Redis/Memcached/MemoryStore     | Redis/Memcached/MemoryStore     |
 
+Back-end endpoint will be [http://localhost:3050/](http://localhost:3050/).
+
+<br/>
+<br/>
+
 The computing node is always isolated as binary. Available platforms are linux and macos.
 Unfortunately, windows platform is still required VM or WSL.
 
@@ -48,6 +57,9 @@ Unfortunately, windows platform is still required VM or WSL.
 | :----- | :------------------ | :-------------------------- |
 | Client | NodeJS16(swc-node)  | tsc → NodeJS → pkg → Binary |
 | Proxy  | Not implemented yet | Not implemented yet         |
+
+<br/>
+<br/>
 
 ### Supported OS
 
@@ -65,7 +77,7 @@ Unfortunately, windows platform is still required VM or WSL.
 | :-------------------------- | :-----: | :------------------------------------------------ |
 | GeForce/Quadro/Tesla        |    ✔    | Based on nvidia container plugins.                |
 | Radeon/W/MI Instinct        |    ✔    | Restricted by ROCm driver version. Required Vega+ |
-| Jetson ( Orin/Xavier/Nano ) |    ✔    | Depends on each versions. |
+| Jetson ( Orin/Xavier/Nano ) |    ✔    | Depends on each versions.                         |
 | TPU ( Coral )               |    △    | WIP                                               |
 | iGPU ( AMD/Intel )          |         |                                                   |
 | Metal ( Apple Sericon )     |         |                                                   |
@@ -73,18 +85,102 @@ Unfortunately, windows platform is still required VM or WSL.
 <br/>
 <br/>
 
-## Configuration
+<br/>
+<br/>
+
+## Compute node configuration
+
+```json
+{
+  "node_id": "<make your node id first>",
+  "api_key_id": "<make your api key first>",
+  "api_key_secret": "<make your api key first>",
+  "manipulator": {
+    "end_point": "http://localhost:3050/"
+  },
+  "driver": "docker",
+  "drivers": {
+    "docker": {
+      "end_point": null
+    },
+    "podman": {
+      "end_point": null
+    },
+    "lxd": {
+      "end_point": null
+    },
+    "kvm": {
+      "end_point": null
+    },
+    "xen": {
+      "end_point": null
+    },
+    "qemu": {
+      "end_point": null
+    }
+  },
+  "IPv4_CheckURL": "https://api.ipify.org",
+  "IPv6_CheckURL": "https://api64.ipify.org",
+
+  "use_ipv4": true,
+  "use_ipv6": false,
+  "ipv4_ports": {
+    "range01": {
+      "protocol": "tcp",
+      "range": [63000, 63030]
+    }
+  },
+  "ipv6_ports": {}
+}
+
+```
+
+1. Download binary from [https://d3w.app/bin/](https://d3w.app/bin/) and add exec permission.
+2. Copy and setup configuration file.
+
+```bash
+sudo mkdir -p /etc/dmc
+cp compute/template.config.json /etc/dmc/config.json
+```
+
+3. Create an entry point of compute node and issue an API key. After that setup config on compute node.
+4. Daemonize "compute" binary somehow. (Recommend to use pm2.)
+
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+
+<hr>
+
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+
+
+
+# Frontend and backend for administrator/developer
+
+
+## Configuration for back-end
+
+1. Copy and setup configuration file.
 
 ```bash
 sudo mkdir -p /etc/dmb
-cp template.config.json /etc/dmb/config.json
+cp backend/template.config.json /etc/dmb/config.json
 ```
 
-1. <font color='red'>Copy template.config.json to ~/.dmb/config.json and setup.</font>
 2. <font color='red'>Start front-end and back-end server and setup root user.</font>
-3. Create an entry point of compute node and issue an API key. After that setup config on compute node.
-
-#### Back-end configuration
 
 ```json
 {
@@ -159,56 +255,6 @@ cp template.config.json /etc/dmb/config.json
 
 ```
 
-#### Compute node configuration
-
-```json
-{
-  "node_id": "<make your node id first>",
-  "api_key_id": "<make your api key first>",
-  "api_key_secret": "<make your api key first>",
-  "manipulator": {
-    "end_point": "http://localhost:3050/"
-  },
-  "driver": "docker",
-  "drivers": {
-    "docker": {
-      "end_point": null
-    },
-    "podman": {
-      "end_point": null
-    },
-    "lxd": {
-      "end_point": null
-    },
-    "kvm": {
-      "end_point": null
-    },
-    "xen": {
-      "end_point": null
-    },
-    "qemu": {
-      "end_point": null
-    }
-  },
-  "IPv4_CheckURL": "https://api.ipify.org",
-  "IPv6_CheckURL": "https://api64.ipify.org",
-
-  "use_ipv4": true,
-  "use_ipv6": false,
-  "ipv4_ports": {
-    "range01": {
-      "protocol": "tcp",
-      "range": [63000, 63030]
-    }
-  },
-  "ipv6_ports": {}
-}
-
-```
-
-<br>
-<br>
-
 ## Installation and Run
 
 Nodejs 16+ based on nvm.
@@ -224,7 +270,7 @@ node -v
 
 ```
 
-For back-end
+### For back-end
 
 ```bash
 ##################################################
@@ -248,7 +294,7 @@ npm start # build + run on dist
 
 ```
 
-The end point will be <a href='http://localhost:3050'>http://localhost:3050</a>
+The endpoint will be <a href='http://localhost:3050'>http://localhost:3050</a>
 
 In deployment, "pm2 startup" is useful to prevent reboot of host.
 
@@ -263,7 +309,7 @@ AMD5950X-4090:back$ sudo env PATH=$PATH:/usr/local/bin /usr/local/lib/node_modul
 # after that, pm2 restart your app when you reboot a host.
 ```
 
-For front-end
+### For front-end
 
 ```bash
 ##################################################
@@ -276,7 +322,7 @@ npm run start2 # Farm
 # But the framework is only available in Linux. No use in macosx and windows.
 ```
 
-The end point will be <a href='http://localhost:4050'>http://localhost:4050</a>
+The endpoint will be <a href='http://localhost:4050'>http://localhost:4050</a>
 
 Front-end deployment flow is super simple, because it's just static HTML.
 Just locate the deployed files on nginx after built.
@@ -298,8 +344,6 @@ root /home/johndoe/repos/frontend/dist;
 
 
 location / {
-    add_header Alt-Svc 'h3=":443"; ma=86400'; # QUIC/HTTP3
-
     # Prevent XSS
     add_header Referrer-Policy same-origin;
     add_header Cross-Origin-Opener-Policy same-origin;
@@ -319,8 +363,6 @@ location / {
 }
 
 location /api/ {
-    add_header Alt-Svc 'h3=":443"; ma=86400'; # QUIC/HTTP3
-
     proxy_pass http://localhost:3050/; # To back-end
     proxy_http_version 1.1; # For express
     proxy_set_header Upgrade $http_upgrade; # For express
@@ -344,7 +386,7 @@ location /api/ {
 
 ```
 
-For compute node
+### For compute node
 
 ```bash
 
@@ -358,16 +400,28 @@ npm start # development
 
 
 ##################################################
-# In product, binary build (Linux/MacOSX)
+# In product, binary build for x64 arch (Linux/MacOSX)
 npm run build # The binary will be into "./bin" directory.
+
+
+# ARM arch is separated command.
+# pkg command cannot provide standalone cross compiling between arm and intel, so you need to build on target machine.
+# Build env(linux-x64)   => linux-x64, darwin-x64 are ok.
+# Build env(linux-x64)   => linux-arm64, darwin-arm64 are not available.
+# Build env(linux-arm64) => linux-arm64 is ok, but macos-arm64 is not available.
+# Build env(macosx-arm64) => linux-arm64 is not available, but macos-arm64 is ok.
+npm run build_arm # The binary will be into "./bin" directory.
 
 ```
 
-The end point will be <a href='http://localhost:4050'>http://localhost:4050</a>
-
-Front-end deployment flow is super simple, because it's just static HTML.
-Just locate the deployed files on nginx after built.
-
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
 <br>
 <br>
 
@@ -384,7 +438,7 @@ generator erd {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
   url      = env("DATABASE_URL")
 }
 
@@ -838,9 +892,7 @@ GUI for MySQL
 - phpMyAdmin
 - HeidiSQL(Windows)
 
-
-### Jetson memo
-
+### Jetson
 
 In jetpack 4.6, docker has permission problem.
 Please set permissions appropriately according to the command below.
@@ -851,8 +903,6 @@ sudo chmod 666 /var/run/docker.sock
 sudo service docker restart
 exit # re-login
 ```
-
-
 
 <br>
 <br>

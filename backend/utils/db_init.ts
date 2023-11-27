@@ -11,8 +11,8 @@ async function main(params: AppParams) {
     const app_name = APP_NAME;
     params.server_name = `${app_name} server`;
     params.app_name = app_name;
-    params.init.database = true;
-    params.init.session_store = true;
+    params.init.database = false;
+    params.init.session_store = false;
 
     await s_exe_s(`rm -rf ~/.cache/prisma*`);
     
@@ -20,7 +20,7 @@ async function main(params: AppParams) {
 
     // DATABASE_URL="<protocol>://<username>:<password>@<host>:<port>/<database>"
     await s_exe_s(`DATABASE_URL=${process.env.DATABASE_URL} npx prisma db push --force-reset`);
-    await context.clear_sessions();
+    // await context.clear_sessions();
     process.exit(0);
 }
 
