@@ -271,8 +271,8 @@ export default async (context: MainContext) => {
                                     }
                                 }
                                 if (should_delete) {
-                                    await ORM.image.delete({ where: { id: image_id } });
                                     await ORM.managed_image.deleteMany({ where: { image_id: image_id } });
+                                    await ORM.image.delete({ where: { id: image_id } });
                                     res.json({ error: null, data: result, request_data: request_data });
                                 } else {
                                     res.json({ error: `Internal Server Error [YW1xfgX2u4]` });
@@ -284,8 +284,8 @@ export default async (context: MainContext) => {
                         });
                     } else {
                         logger.log(`No image key(${image_id}):`, image);
-                        logger.log("Image.deleteOne", await ORM.image.delete({ where: { id: image_id } }));
                         logger.log("ManagedImage.deleteMany", await ORM.managed_image.deleteMany({ where: { image_id: image_id } }));
+                        logger.log("Image.deleteOne", await ORM.image.delete({ where: { id: image_id } }));
                         res.json({ error: null, data: {} });
                     }
                 } else {

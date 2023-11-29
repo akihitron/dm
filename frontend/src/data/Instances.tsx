@@ -12,6 +12,37 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import Typography from '@mui/material/Typography';
 // import TextBoxWithCopyButton from '../libs/TextBoxWithCopyButton';
 
+import { Terminal } from 'xterm'
+
+let terminal = new Terminal({
+	fontFamily:"courier-new, courier, monospace",
+	// fontFamily:"courier-new, courier, monospace",
+	fontWeight:undefined,
+	fontSize:14
+});
+// let terminal = new Terminal({ fontFamily:"'Monaco','Menlo','Ubuntu Mono','Consolas','source-code-pro',monospace",fontSize:14});
+export const TerminalComponent = () => {
+  const [term, setTerm] = useState(terminal);
+  useEffect(() => {
+	const dom = document.getElementById('terminal');
+	if (!dom) return;
+	if (dom.children.length > 0) return;
+	term.open(dom);
+	term.write(`AMD5950X-4090:dm$ ls
+a.sh  backend  compute   f         g        m          tmp   u
+b     c        debug.sh  frontend  kill.sh  README.md  t.sh  w.sh
+AMD5950X-4090:dm$ cd backend/
+AMD5950X-4090:backend$ ls
+jest.config.js  package-lock.json  README.template.md  utils
+nodemon.json    pm2config.json     src
+package.json    prisma             tsconfig.json
+AMD5950X-4090:backend$`.replace(/\n/g, "\r\n"));
+})
+//   term.write('Hello from \x1B[1;3;31mxterm.js\x1B[0m $ ');
+  return <div id="terminal" style={{fontFamily: "unset"  }}/>
+}
+
+
 const TEMPLATE_NAME = [
 	'raccoon', 'dog', 'wild_boar',
 	'rabbit', 'cow', 'horse',
@@ -428,7 +459,7 @@ export default function InstancesGrid(prop: any) {
 			{something_error.length > 0 ? <Alert sx={{ marginBottom: 1 }} severity="error">{something_error}</Alert> : <></>}
 
 			<h1>Instances</h1>
-			<Box sx={{ height: 400 }}>
+			<Box sx={{ height: 600 }}>
 
 				<DataGrid
 					rows={instance_list}
@@ -494,7 +525,7 @@ export default function InstancesGrid(prop: any) {
 			</Box>
 
 			{operation_error.length > 0 ? <Alert sx={{ marginBottom: 1, marginTop: 1 }} severity="error">{operation_error}</Alert> : <></>}
-			<Box sx={{ width: '100%', marginTop: 2, textAlign: "right" }}>
+			<Box sx={{ width: '100%', marginTop: 2, textAlign: processing_flag?"center":"right" }}>
 				{processing_flag ? <CircularProgress /> : <>
 					<Button sx={{ width: "20%", marginLeft: 1 }} variant="contained" onClick={() => {
 						setButtonName("start");
@@ -524,6 +555,7 @@ export default function InstancesGrid(prop: any) {
 					<Tab label="Launch" />
 					<Tab label="SSH" />
 					<Tab label="Status" />
+					<Tab label="Terminal" />
 				</Tabs>
 			</Box>
 
@@ -895,6 +927,29 @@ export default function InstancesGrid(prop: any) {
 					</Card>
 				</Box>
 			</> : ""}
+
+			{tab == 3 ? <>
+				<Box sx={{ boxShadow: "0px 0px 2px black" }}>
+					<TerminalComponent/>
+					{/* <Card>
+						<CardContent>
+							<Paper sx={{
+								marginTop: 2,
+								padding: 2,
+								width: '100%',
+								backgroundColor: '#222',
+								overflow: 'auto',
+								color: '#AAA',
+								whiteSpace: 'pre-wrap',
+								boxShadow: "0px 0px 2px black",
+							}}>
+								<TerminalComponent/>
+							</Paper>
+						</CardContent>
+					</Card> */}
+				</Box>
+			</> : ""}
+			
 
 			<ConfirmDialog open={showConfirmDialog} setOpen={setConfirmDialogVisibility} onSubmit={(flag: boolean) => {
 				clear_error_messages();

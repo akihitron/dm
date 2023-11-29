@@ -112,9 +112,9 @@ export default function SignIn({ onClosed, show, onClickedForgetPassword, onClic
         }, 3000);
       }
       await U.sleep(1000);
-    } catch (e) {
+    } catch (e: any) {
       await U.sleep(1000);
-      error_message = 'Server Error';
+      error_message = 'Server Error:' + e.toString();
       console.error(e);
     }
     setAccessState(0);

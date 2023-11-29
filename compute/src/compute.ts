@@ -649,7 +649,11 @@ async function main() {
         });
     }
 
-    logger.log("Self node_id:", config.node_id);
+    if (config.node_id.indexOf("<") >= 0) {
+        logger.error("Self node_id:", config.node_id);
+    } else {
+        logger.log("Self node_id:", config.node_id);
+    }
     if (config.node_id == null) {
         logger.error(" node_id is not set.");
         logger.error(" Please make a new node_id before start the node and set into the config file.");

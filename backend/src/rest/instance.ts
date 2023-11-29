@@ -400,7 +400,6 @@ export default async (context: MainContext) => {
             const client = NodeTable.get(node_id);
             if (client == null) {
                 if (force) {
-                    logger.log(await ORM.port_map.deleteMany({ where: { instance_id: instance.id } }))
                     logger.log(await ORM.managed_instance.deleteMany({ where: { instance_id: instance.id } }))
                     logger.log(await ORM.instance.delete({ where: { id: instance.id } }));
                     return res.json({ error: null, data: {} });

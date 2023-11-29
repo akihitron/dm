@@ -536,10 +536,15 @@ export class DockerDriver implements Driver {
                         docker.modem.followProgress(stream, onFinished, onProgress);
                         function onFinished(err: any, output: any) {
                             if (err) reject(err);
+                            console.log("\n");
                             resolve(output);
                         }
+                        console.log("\n");
                         function onProgress(event: any) {
-                            logger.log(event);
+                            if (event.progress) {
+                                process.stdout.write("\x1b[1A\x1b[1G");
+                                process.stdout.write(`${event.id}:${event.status}\n${event.progress}`);
+                            }
                         }
 
                     }
@@ -551,7 +556,6 @@ export class DockerDriver implements Driver {
         //  Note that it does not work in parallel.
         const pre_images = await docker.listImages();
         const _ = await pull(url) as [any];
-        logger.log(_);
         const cur_images = await docker.listImages();
 
         const an_image = cur_images.filter(aObj => {

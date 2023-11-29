@@ -61,11 +61,11 @@ export default async (context: MainContext) => {
                 logger.log("API Key Auth:", node_id, api_key_id);
                 const exists_api_key_by_id = await ORM.api_key.findUnique({ where: { id: api_key_id } });
                 if (exists_api_key_by_id == null) return res.json({ error: "Invalid api key. [JkL9YywrYF]" });
-                const d_api_key = await ORM.api_key.findUnique({ where: { id: api_key_id, hash: HashPassword(api_key_secret, exists_api_key_by_id.salt, 'sha3-256') } });
+                const d_api_key = await ORM.api_key.findFirst({ where: { id: api_key_id, hash: HashPassword(api_key_secret, exists_api_key_by_id.salt, 'sha3-256') } });
                 if (d_api_key == null) return res.json({ error: "Invalid api key. [Z1G6v0xdze]" });
-                const d_node = await ORM.compute_node.findUnique({ where: { id: node_id } });
+                const d_node = await ORM.compute_node.findFirst({ where: { id: node_id, user_id:d_api_key.user_id } });
                 if (d_node == null) return res.json({ error: "Invalid node. [IaOeScgyMS]" });
-                d_user = await ORM.user.findUnique({ where: { id: d_node.user_id } });
+                d_user = await ORM.user.findUnique({ where: { id: d_api_key.user_id } });
                 if (!d_user) return res.json({ error: "Invalid user. [6RSPKiH60U]" });
             } else {
                 logger.log("Password auth:", email);
@@ -205,7 +205,7 @@ export default async (context: MainContext) => {
         const session = req.session as any;
         const user_id = session.user.user_id as string;
         try {
-            await ORM.api_key.delete({ where: { id: api_key_id, user_id: user_id } });
+            await ORM.api_key.deleteMany({ where: { id: api_key_id, user_id: user_id } });
             res.json({ error: null, data: null });
         } catch (e) {
             logger.error(e);

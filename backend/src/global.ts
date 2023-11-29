@@ -11,7 +11,6 @@ export class AppParams {
     worker = { id: 1 };
     port:number | null = null;
 
-
     init = {
         session_store: true,
         database: true,

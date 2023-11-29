@@ -16,7 +16,7 @@ async function main(params: AppParams) {
 
     const context: MainContext = await configure(params);
 
-    await s_exe_s(`DATABASE_URL=${process.env.DATABASE_URL} npx prisma migrate`);
+    await s_exe_s(`DATABASE_URL=${process.env.DATABASE_URL} npx prisma migrate deploy`);
     process.exit(0);
 }
 

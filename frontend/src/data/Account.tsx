@@ -153,7 +153,7 @@ export default function Account(prop: any) {
 
 				
 			</Button>
-			<Button sx={{ width: "100%", marginTop: 2 }} variant="contained" onClick={() => {
+			<Button sx={{ width: "100%", marginTop: 2, marginBottom:5 }} variant="contained" onClick={() => {
 				setConfirmDialogVisibility(true);
 			}} color="primary" disabled={selectedRows.length == 0}>Delete</Button>
 

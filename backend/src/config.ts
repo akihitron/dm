@@ -27,15 +27,17 @@ export default (_app_name: string, _params: any = {}) => {
     let _warn = (...args: any[]) => { };
     let _log = (...args: any[]) => { };
     if (!params.silent) {
-        _warn = (...args: any[]) => console.warn(...args);
-        _log = (...args: any[]) => console.log(...args);
+        // _warn = (...args: any[]) => console.warn(...args);
+        // _log = (...args: any[]) => console.log(...args);
         // log = console.log;
     }
+    _warn = (...args: any[]) => console.warn(...args);
+    _log = (...args: any[]) => console.log(...args);
 
 
     const load = (f: string, warn = false) => {
         if (CONFIG == null) {
-            if (fs.existsSync(f)) try { (warn ? _warn("Found:", f) : _log("Found:", f)); CONFIG = require(f); config_file = f; } catch (e) { console.error(e) }
+            if (fs.existsSync(f)) try { (warn ? _warn("Found:", f) : _log("\x1b[32mFound:", f, "\x1b[0m")); CONFIG = require(f); config_file = f; } catch (e) { console.error(e) }
             else warn ? _warn("Not found:", f) : _log("Not found:", f);
         }
     }

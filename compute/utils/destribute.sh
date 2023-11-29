@@ -1,58 +1,68 @@
 #!/bin/bash
 
-# TARGET=win
-# scp bin/compute-linux $TARGET:~/bin/compute
-# TARGET=min scp bin/compute-linux $TARGET:~/bin/compute
-# TARGET=nic
-# scp bin/compute-linux $TARGET:~/bin/compute
-# TARGET=st
-# scp bin/compute-linux $TARGET:~/bin/compute
-# ssh $TARGET "cd ~/bin; ./compute"
+# This setting for distribution in personal.
+
+export XZ_OPT=-9
+
+arch=$(uname -m)
+
+if [ "$arch" = "armv7l" ]; then
+    echo "Not support armv7l"
+elif [ "$arch" = "x86_64" ]; then
+
+    npm run build
+    cp -f bin/compute-linux ~/datas/bin/linux-x64/compute
+    cp -f bin/compute-macos ~/datas/bin/macos-x64/compute
+    cp -f src/template.config.json ~/datas/bin/linux-x64/compute.template_config.json
+    cp -f src/template.config.json ~/datas/bin/macos-x64/compute.template_config.json
+    tar -cJf ~/datas/bin/linux-x64/compute.tar.xz -C ~/datas/bin/linux-x64 compute
+    tar -cJf ~/datas/bin/macos-x64/compute.tar.xz -C ~/datas/bin/macos-x64 compute
+
+elif [ "$arch" = "arm64" ]; then
+
+    npm run build_arm
+
+    system_name=$(uname -s)
+
+    if [ "$system_name" = "Linux" ]; then
+
+        cp -f src/template.config.json ~/datas/bin/linux-arm64/compute.template_config.json
+        cp -f bin/compute ~/datas/bin/linux-arm64/compute
+        tar -cJf ~/datas/bin/linux-arm64/compute.tar.xz -C ~/datas/bin/linux-arm64 compute
+
+    elif [ "$system_name" = "Darwin" ]; then
+
+        cp -f src/template.config.json ~/datas/bin/macos-arm64/compute.template_config.json
+        cp -f bin/compute ~/datas/bin/macos-arm64/compute
+        tar -cJf ~/datas/bin/macos-arm64/compute.tar.xz -C ~/datas/bin/macos-arm64 compute
+
+    else
+        echo "Other system: $system_name"
+    fi
+
+else
+    echo "Other arch: $arch"
+fi
 
 
 
-SESSION=dstdm
 
-cp -f bin/compute-linux ~/datas/bin/linux/compute
-cp -f bin/compute-macos ~/datas/bin/macos/compute
-cp -f src/template.config.json ~/datas/bin/linux/compute.template_config.json
-cp -f src/template.config.json ~/datas/bin/macos/compute.template_config.json
+host_name=$(hostname)
 
-# npm run build
-TARGET=win
-ssh $TARGET "mkdir -p ~/bin;rm ~/bin/compute"
-scp bin/compute-linux $TARGET:~/bin/compute
-TARGET=st
-ssh $TARGET "mkdir -p ~/bin;rm ~/bin/compute"
-scp bin/compute-linux $TARGET:~/bin/compute
-TARGET=nic
-ssh $TARGET "mkdir -p ~/bin;rm ~/bin/compute"
-scp bin/compute-linux $TARGET:~/bin/compute
+if [ "$host_name" = "min" ]; then
+    # MIN Server
+    TARGET=win
+    ssh $TARGET "mkdir -p ~/bin;rm ~/bin/compute"
+    scp bin/compute-linux $TARGET:~/bin/compute
 
+    TARGET=st
+    ssh $TARGET "mkdir -p ~/bin;rm ~/bin/compute"
+    scp bin/compute-linux $TARGET:~/bin/compute
 
-# TARGET=jetson
-# ssh $TARGET "mkdir -p ~/bin;rm ~/bin/compute"
-# scp bin/compute-linux-arm64 $TARGET:~/bin/compute
+elif [ "$host_name" = "jetson" ]; then
+    # Jetson
+    TARGET=jetson
+    ssh $TARGET "mkdir -p ~/bin;rm ~/bin/compute"
+    scp bin/compute $TARGET:~/bin/compute
 
-# echo "kill"
-
-# tmux kill-session -t $SESSION
-
-# echo "new session"
-
-# tmux new -t $SESSION\; \
-# split-window -v \; \
-# select-pane -t 0\; \
-# split-window -v \; \
-# select-pane -t 1\; \
-# split-window -v \; \
-# select-pane -t 2\; \
-# send-keys -t 0 "ssh win 'killall compute ; ~/bin/compute'" C-m\; \
-# send-keys -t 1 "ssh st 'killall compute ; ~/bin/compute'" C-m\; \
-# send-keys -t 2 "./c" C-m\; \
-
-echo "done"
-
-# # firefox http://localhost:4050/ &
-# # firefox http://localhost:5555/ &
-
+fi

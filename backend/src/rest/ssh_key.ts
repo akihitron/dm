@@ -33,7 +33,7 @@ export default async (context: MainContext) => {
         const { _error_, id } = CheckJSONProperties(["id"], req); if (_error_) return res.json({ error: _error_ });
         const user_id = (req.session as any).user.user_id;
         try {
-            const data = await ORM.ssh_key.delete({where:{id:id, user_id:user_id}});
+            const data = await ORM.ssh_key.deleteMany({where:{id:id, user_id:user_id}});
             res.json({ error: null, data: data });
         } catch (e) {
             logger.error(e);

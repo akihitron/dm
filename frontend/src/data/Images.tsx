@@ -171,7 +171,7 @@ export default function ImagesGrid(prop: any) {
 		<Box sx={{ width: '100%', marginBottom: 10 }}>
 			{something_error.length > 0 ? <Alert sx={{ marginBottom: 1 }} severity="error">{something_error}</Alert> : <></>}
 			<h1>Images</h1>
-			<Box sx={{ height: 400 }}>
+			<Box sx={{ height: 600 }}>
 				<DataGrid
 					rows={image_list}
 					columns={columns}

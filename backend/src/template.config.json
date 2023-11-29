@@ -15,7 +15,7 @@
         "end_point": "mysql://<username>:<password>@localhost:3306/dmb"
       },
       "sqlite": {
-        "end_point": "file:./workspace/sqlite.db"
+        "end_point": "file:./workspace/sqlite.db?connection_limit=1"
       }
     }
   },
@@ -47,7 +47,7 @@
         "end_point": "mysql://<username>:<password>@localhost:3306/dmb"
       },
       "sqlite": {
-        "end_point": "file:./workspace/sqlite.db"
+        "end_point": "file:./workspace/sqlite.db?connection_limit=1"
       }
     }
   },

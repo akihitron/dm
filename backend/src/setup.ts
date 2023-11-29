@@ -59,8 +59,7 @@ class PrismaDriver {
   connection: any;
   async init(driver_name:string, driver_config: any) {
     const ORM = this.ORM = new PrismaClient({
-      log: ["warn", "error"],
-      // log: ["query", "info", "warn", "error"],
+      log: ["info", "warn", "error"],
     });
     let db_name = "";
     if (driver_config.end_point && driver_config.end_point.indexOf("@") > 0) {
