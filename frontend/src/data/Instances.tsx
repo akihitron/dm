@@ -294,7 +294,7 @@ export default function InstancesGrid(prop: any) {
 
 	const [selection, setSelection] = useState({ row: 0, col: 0 });
 	const [needsUpdate, setNeedsUpdate] = useState(0);
-	const [disable_submit, setDisableSubmit] = useState(false);
+	const [disable_submit, setDisableSubmit] = useState(true);
 	const [selectedRows, setSelectedRows] = useState<Array<any>>([]);
 	const [showConfirmDialog, setConfirmDialogVisibility] = useState(false);
 	const [processing_flag, setProcessingFlag] = useState(false);
@@ -320,6 +320,7 @@ export default function InstancesGrid(prop: any) {
 	const [copied_message, setCopiedMessage] = useState(false);
 
 	const [error_message_of_instance_name, setErrorMessageOfInstanceName] = useState("");
+	const [error_message_of_ssh_port, setErrorMessageOfSSHPort] = useState("");
 
 
 	const [use_ssh, toggleSSH] = useState(true);
@@ -328,15 +329,22 @@ export default function InstancesGrid(prop: any) {
 	const [app_port_list, setAppPortList] = useState<Array<string>>([]);
 	const [instance_name, _setInstanceName] = useState(TEMPLATE_NAME[Math.floor(Math.random() * 1000) % TEMPLATE_NAME.length]);
 	const setInstanceName = (name: string) => {
-		if (name.length == 0 || instance_list.filter((u: any) => u.name == name).length > 0) {
-			setDisableSubmit(true);
+		if (name.length <= 2 || instance_list.filter((u: any) => u.name == name).length > 0 || (name.match(/^[a-z0-9_-]+$/)==null)) {
 			setErrorMessageOfInstanceName("Invalid name.");
 		} else {
-			setDisableSubmit(false);
 			setErrorMessageOfInstanceName("");
 		}
 		_setInstanceName(name);
 	}
+	const updateSubmitButtonForLaunch = () => {
+		if (instance_name.length <= 2 || instance_list.filter((u: any) => u.name == instance_name).length > 0 || (use_ssh&&ssh_port==-1) || image_list.filter((u: any) => u.id == image_id).length == 0|| (instance_name.match(/^[a-z0-9_-]+$/)==null)) {
+			if (disable_submit == false) setDisableSubmit(true);
+		} else {
+			if (disable_submit == true) setDisableSubmit(false);
+		}
+	}
+	updateSubmitButtonForLaunch();
+	
 	const [accelerator, setAccelerator] = useState("cpu");
 
 	const [buttonName, setButtonName] = useState("");
@@ -375,6 +383,7 @@ export default function InstancesGrid(prop: any) {
 		setOperationError("");
 		setErrorMessage("");
 		setErrorMessageOfInstanceName("");
+		setErrorMessageOfSSHPort("");
 		setSomethingError("");
 	}
 
@@ -691,8 +700,8 @@ export default function InstancesGrid(prop: any) {
 												</>}
 
 												<TextField label="SSH port" variant="outlined" sx={{ marginBottom: 2, marginTop: 2, width: "100%" }}
-													error={!!error_message_of_instance_name}
-													helperText={error_message_of_instance_name}
+													error={!!error_message_of_ssh_port}
+													helperText={error_message_of_ssh_port}
 													value={ssh_port} onChange={(event: any) => { }}
 													disabled />
 
