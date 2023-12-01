@@ -199,21 +199,6 @@ cp backend/template.config.json /etc/dmb/config.json
       },
       "memorystore": {
         
-      },
-      "mongodb": {
-        "end_point": "mongodb://<username>:<password>@localhost:27017/dmb"
-      },
-      "postgresql": {
-        "end_point": "postgresql://<username>:<password>@localhost:5432/dmb"
-      },
-      "sqlserver": {
-        "end_point": "sqlserver://<username>:<password>@localhost:1433/dmb"
-      },
-      "mysql": {
-        "end_point": "mysql://<username>:<password>@localhost:3306/dmb"
-      },
-      "sqlite": {
-        "end_point": "file:./workspace/sqlite.db?connection_limit=1"
       }
     }
   },

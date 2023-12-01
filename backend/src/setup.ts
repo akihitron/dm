@@ -21,7 +21,7 @@ import RedisStore from 'connect-redis';
 import { randomUUID } from 'crypto';
 
 const USE_LIMITER = false;
-let IPv4:string|null = null;
+let IPv4: string | null = null;
 
 const IPv4_CheckURL = "https://api.ipify.org";
 
@@ -47,7 +47,7 @@ class RedisDriver {
     const end_point = driver_config.end_point ? driver_config.end_point : `redis://${driver_config.host}:${driver_config.port}`;
     // Test Connection
     logger.log("Redis: Connecting...");
-    const redisClient = createRedisClient({url:end_point});
+    const redisClient = createRedisClient({ url: end_point });
     await redisClient.connect();
     logger.success("Redis: OK");
     return redisClient;
@@ -60,7 +60,7 @@ class RedisDriver {
 class PrismaDriver {
   ORM: PrismaClient | null | undefined = null;
   connection: any;
-  async init(driver_name:string, driver_config: any) {
+  async init(driver_name: string, driver_config: any) {
     const ORM = this.ORM = new PrismaClient({
       log: ["info", "warn", "error"],
     });
@@ -71,13 +71,13 @@ class PrismaDriver {
 
     logger.log(`Prisma(${driver_name}:${db_name}): Connecting...`);
     await ORM.log.create({
-        data: {
-            host: os.hostname(),
-            ip: IPv4,
-            title: "Boot",
-            description: "DB connection test",
-            timestamp: new Date()
-        }
+      data: {
+        host: os.hostname(),
+        ip: IPv4,
+        title: "Boot",
+        description: "DB connection test",
+        timestamp: new Date()
+      }
     });
 
     logger.success(`Prisma(${driver_name}:${db_name}): OK`);
@@ -117,7 +117,7 @@ class NetworkInterfaces {
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 // Check config
-function CheckConfig(config:any) {
+function CheckConfig(config: any) {
   const DEFAULT_DATABASE = {
     "driver": "sqlite",
     "drivers": {
@@ -126,26 +126,48 @@ function CheckConfig(config:any) {
       }
     }
   };
+
   const DEFAULT_SESSION_STORE = {
     "driver": "memorystore",
     "secret_key": randomUUID().replace(/-/g, ""),
-    "drivers": {"memorystore":{}}
+    "drivers": {
+      "redis": {
+        "host": "127.0.0.1",
+        "port": 6379,
+        "password": null
+      },
+      "memcached": {
+        "hosts": ["127.0.0.1:11211"]
+      },
+      "memorystore": {
+
+      }
+    }
   };
-  if (config.database?.drivers?.[config.database?.driver] == null) {
-    logger.warn("!Invalid database configuration.");
-    logger.warn(" => SQLite will be used.");
+
+  // Check database config
+  if (config.database?.driver == "sqlite" && config.database?.drivers?.[config.database?.driver] == null) {
+    config.database = DEFAULT_DATABASE;
+  } else if (config.database?.drivers?.[config.database?.driver] == null) {
+    logger.error("!Invalid database configuration.");
+    logger.error(" => SQLite will be used.");
     config.database = DEFAULT_DATABASE;
   }
-  if (config.session_store?.drivers?.[config.session_store?.driver] == null) {
-    logger.warn("!Invalid session store configuration.");
-    logger.warn(" => MemoryStore will be used.");
-    logger.warn("(We recommend redis or memcached to maintain login during development.)");
+  // Check session store config
+  if (config.session_store?.driver && config.session_store?.drivers == null) {
+    config.session_store.drivers = DEFAULT_SESSION_STORE.drivers;
+  } else if (config.session_store?.drivers?.[config.session_store?.driver] == null) {
+    logger.error("!Invalid session store configuration.");
+    logger.error(" => MemoryStore will be used.");
+    logger.error("(We recommend redis or memcached to maintain login during development.)");
     config.session_store = DEFAULT_SESSION_STORE;
   }
+  // Check email config
   if (config.email?.drivers?.[config.email?.driver] == null) {
-    logger.warn("!Invalid email configuration.");
+    logger.warn("Does not have an email configuration.");
     logger.warn(" => Standalone user management system.");
   }
+  // Optionals
   if (config.default_users == null) {
     config.default_users = [];
   }
@@ -158,7 +180,7 @@ let _context_: MainContext;
 async function configure(params: AppParams) {
   if (_context_) return _context_;
   return _context_ = await new Promise(async (resolve) => {
-    
+
     const init = params.init;
     const app_name = params.app_name;
 
@@ -173,7 +195,7 @@ async function configure(params: AppParams) {
     context.local_ipv4s = NetworkInterfaces.local_ipv4s();
     logger.log(`ARGV: NODE_ENV(${process.env.NODE_ENV}) JEST(${process.env.JEST}) DEBUG(${process.env.DEBUG}) NODE_CLUSTER(${process.env.NODE_CLUSTER})`);
 
-    IPv4 = await fetch(context.config.IPv4_CheckURL??IPv4_CheckURL).then(res => res.text()).catch(e => console.error("\x1b[31m",e,"\x1b[0m")) as string;
+    IPv4 = await fetch(context.config.IPv4_CheckURL ?? IPv4_CheckURL).then(res => res.text()).catch(e => console.error("\x1b[31m", e, "\x1b[0m")) as string;
     if (IPv4 == null) {
       logger.error("Failed to get IPv4 address.");
       process.exit(1);
@@ -208,7 +230,7 @@ async function configure(params: AppParams) {
             }
           } else if (driver_name == "prisma" || driver_name == "mysql" || driver_name == "postgres" || driver_name == "postgresql" || driver_name == "sqlite" || driver_name == "sqlite3" || driver_name == "sqlserver") {
             const driver = new PrismaDriver();
-            db = await driver.init(driver_name,driver_config);
+            db = await driver.init(driver_name, driver_config);
             model_init_func = async function (db: any) {
               context.model = driver.ORM;
             }
@@ -307,11 +329,11 @@ async function configure(params: AppParams) {
       }
       if (session_store && init.session_store) context.session_store = await session_store;
       context.close = async function () {
-        try { await context.session_store?.destroy?.(); } catch (e: any) { console.error("\x1b[31m",e,"\x1b[0m") }
-        try { await context.session_store?.close?.(); } catch (e: any) { console.error("\x1b[31m",e,"\x1b[0m") }
-        try { await context.db?.connection?.close?.(); } catch (e: any) { console.error("\x1b[31m",e,"\x1b[0m") }
-        try { await context.db?.close?.(); } catch (e: any) { console.error("\x1b[31m",e,"\x1b[0m") }
-        try { await context.db?.disconnect?.(); } catch (e: any) { console.error("\x1b[31m",e,"\x1b[0m") }
+        try { await context.session_store?.destroy?.(); } catch (e: any) { console.error("\x1b[31m", e, "\x1b[0m") }
+        try { await context.session_store?.close?.(); } catch (e: any) { console.error("\x1b[31m", e, "\x1b[0m") }
+        try { await context.db?.connection?.close?.(); } catch (e: any) { console.error("\x1b[31m", e, "\x1b[0m") }
+        try { await context.db?.close?.(); } catch (e: any) { console.error("\x1b[31m", e, "\x1b[0m") }
+        try { await context.db?.disconnect?.(); } catch (e: any) { console.error("\x1b[31m", e, "\x1b[0m") }
       }
       clearInterval(timer);
       resolve(context);

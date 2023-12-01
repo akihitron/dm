@@ -22,7 +22,13 @@ let terminal = new Terminal({
 	fontSize: 14
 });
 // let terminal = new Terminal({ fontFamily:"'Monaco','Menlo','Ubuntu Mono','Consolas','source-code-pro',monospace",fontSize:14});
-const socket = new WebSocket('wss://docker.example.com/containers/mycontainerid/attach/ws');
+
+const BASE_URL = import.meta.env.BASE_URL;
+const ORIGIN_URL_OBJ = new URL(window.location.origin);
+const WS_PROTOCOL = ORIGIN_URL_OBJ.protocol == "https:" ? "wss:" : "ws:";
+const WS_URL = `${WS_PROTOCOL}//${ORIGIN_URL_OBJ.host}${BASE_URL}api/ws/`;
+console.warn(WS_URL);
+const socket = new WebSocket(WS_URL);
 
 export const TerminalComponent = () => {
 	const [term, setTerm] = useState(terminal);
