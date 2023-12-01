@@ -47,9 +47,9 @@ export default function MembersGrid(prop: any) {
 	return (
 		<Box sx={{ height: 250, width: '100%', marginBottom: 10 }}>
 			<h1>Members</h1>
-			<Box sx={{ height: 400 }}>
 				<DataGrid
-					rows={data}
+				sx={{maxHeight: 400, minHeight: 200 }}
+				rows={data}
 					columns={columns}
 					initialState={{
 						pagination: {
@@ -62,7 +62,6 @@ export default function MembersGrid(prop: any) {
 					checkboxSelection
 					disableRowSelectionOnClick
 				/>
-			</Box>
 
 		</Box>
 	);

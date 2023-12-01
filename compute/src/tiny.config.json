@@ -1,0 +1,14 @@
+{
+  "node_id": "<make your node id first>",
+  "api_key_id": "<make your api key first>",
+  "api_key_secret": "<make your api key first>",
+  "manipulator": {
+    "end_point": "http://localhost:3050/"
+  },
+  "ipv4_ports": {
+    "range01": {
+      "protocol": "tcp",
+      "range": [63000, 63005]
+    }
+  }
+}

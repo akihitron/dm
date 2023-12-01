@@ -167,9 +167,9 @@ export default function SSHKeysGrid(prop: any) {
 			{error_location == "top" && something_error.length > 0 ? <Alert sx={{ marginBottom: 1, marginTop: 1 }} severity="error">{something_error}</Alert> : <></>}
 
 			<h1>SSH keys</h1>
-			<Box sx={{ height: 400 }}>
 
 				<DataGrid
+					sx={{maxHeight: 400, minHeight: 200 }}
 					rows={data}
 					columns={columns}
 					initialState={{
@@ -187,7 +187,6 @@ export default function SSHKeysGrid(prop: any) {
 					}}
 
 				/>
-			</Box>
 
 			{error_location == "delete" && something_error.length > 0 ? <Alert sx={{ marginBottom: 1, marginTop: 1 }} severity="error">{something_error}</Alert> : <></>}
 			<Button sx={{ width: "100%", marginTop: 2, marginBottom: 10 }} variant="contained" onClick={() => {

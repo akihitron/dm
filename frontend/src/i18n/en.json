@@ -45,6 +45,7 @@
 	},
 	"left_menu": {
 		"ssh_keys": "SSH keys",
+		"api_keys": "API Keys",
 		"images": "Images",
 		"instances": "Instances",
 		"compute_nodes": "Nodes",

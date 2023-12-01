@@ -77,6 +77,7 @@ export function CreateDriver(config: any, driver: string) {
         case "nvidia-docker": return new DockerDriver(config);
         case "kvm": throw new Error("Not implemented yet");
         case "lxd": throw new Error("Not implemented yet");
+        case "podman": throw new Error("Not implemented yet");
         default:
             throw new Error("Driver not found");
     }

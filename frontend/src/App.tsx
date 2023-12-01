@@ -23,7 +23,7 @@ import 'xterm/css/xterm.css';
 
 import { useAsync, useInterval } from 'react-use';
 
-export const BASE_URL = import.meta.env.BASE_URL;
+const BASE_URL = import.meta.env.BASE_URL;
 console.log("BASE_URL", BASE_URL);
 let first_login_check_flag = false;
 
@@ -129,11 +129,15 @@ function App() {
 	);
 }
 
+const rootElement = document.getElementById('root') as HTMLElement;
+let root = null;
+if (root === null && rootElement !== null && rootElement.childNodes.length === 0) {
+	root = ReactDOM.createRoot(rootElement).render(
+		<React.StrictMode>
+			<Router basename={BASE_URL}>
+				<App />
+			</Router>
+		</React.StrictMode>
+	);
+}
 
-ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
-	<React.StrictMode>
-		<Router basename={BASE_URL}>
-			<App />
-		</Router>
-	</React.StrictMode>
-);

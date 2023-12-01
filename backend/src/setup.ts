@@ -18,9 +18,12 @@ import { PrismaClient } from '@prisma/client';
 import { MemcachedStore, MemcachedSessionOptions } from 'connect-memcached';
 import { createClient as createRedisClient } from 'redis';
 import RedisStore from 'connect-redis';
+import { randomUUID } from 'crypto';
 
 const USE_LIMITER = false;
 let IPv4:string|null = null;
+
+const IPv4_CheckURL = "https://api.ipify.org";
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////
@@ -113,6 +116,43 @@ class NetworkInterfaces {
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
+// Check config
+function CheckConfig(config:any) {
+  const DEFAULT_DATABASE = {
+    "driver": "sqlite",
+    "drivers": {
+      "sqlite": {
+        "end_point": "file:./workspace/sqlite.db?connection_limit=1"
+      }
+    }
+  };
+  const DEFAULT_SESSION_STORE = {
+    "driver": "memorystore",
+    "secret_key": randomUUID().replace(/-/g, ""),
+    "drivers": {"memorystore":{}}
+  };
+  if (config.database?.drivers?.[config.database?.driver] == null) {
+    logger.warn("!Invalid database configuration.");
+    logger.warn(" => SQLite will be used.");
+    config.database = DEFAULT_DATABASE;
+  }
+  if (config.session_store?.drivers?.[config.session_store?.driver] == null) {
+    logger.warn("!Invalid session store configuration.");
+    logger.warn(" => MemoryStore will be used.");
+    logger.warn("(We recommend redis or memcached to maintain login during development.)");
+    config.session_store = DEFAULT_SESSION_STORE;
+  }
+  if (config.email?.drivers?.[config.email?.driver] == null) {
+    logger.warn("!Invalid email configuration.");
+    logger.warn(" => Standalone user management system.");
+  }
+  if (config.default_users == null) {
+    config.default_users = [];
+  }
+}
+
+
+///////////////////////////////////////////////////////////////////////////////////////////
 // Setup
 let _context_: MainContext;
 async function configure(params: AppParams) {
@@ -126,13 +166,14 @@ async function configure(params: AppParams) {
     // Configuration
     const context = new MainContext();
     context.config = config(params.app_name);
+    CheckConfig(context.config);
     context.worker_id = params.worker.id;
     context.limiters = {};
     context.sub_apis = {};
     context.local_ipv4s = NetworkInterfaces.local_ipv4s();
     logger.log(`ARGV: NODE_ENV(${process.env.NODE_ENV}) JEST(${process.env.JEST}) DEBUG(${process.env.DEBUG}) NODE_CLUSTER(${process.env.NODE_CLUSTER})`);
 
-    IPv4 = await fetch(context.config.IPv4_CheckURL).then(res => res.text()).catch(e => console.error("\x1b[31m",e,"\x1b[0m")) as string;
+    IPv4 = await fetch(context.config.IPv4_CheckURL??IPv4_CheckURL).then(res => res.text()).catch(e => console.error("\x1b[31m",e,"\x1b[0m")) as string;
     if (IPv4 == null) {
       logger.error("Failed to get IPv4 address.");
       process.exit(1);

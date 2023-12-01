@@ -45,6 +45,7 @@
 	},
 	"left_menu": {
 		"ssh_keys": "SSH公開鍵",
+		"api_keys": "APIキー",
 		"images": "イメージ",
 		"instances": "インスタンス",
 		"compute_nodes": "ノード",

@@ -531,7 +531,7 @@ ALTER ROLE postgres WITH password '<your password>'; # Change your favorite pass
 #  url      = env("DATABASE_URL")
 # }
 
-# Run "npm run init" or "npm run migrate"
+# Run "npm run init" or "npm run sync"
 # Prisma has something cache for definition. You need to refresh them when you changed the database engine.
 
 ```
@@ -576,9 +576,11 @@ sudo systemctl restart mysql
 Database initializer
 
 ```bash
-npm run init # delete + migrate
+npm run init # delete + sync
 
-npm run migrate # just migrate
+# If you changed database or schema, sync prisma.schema and database.
+# Prisma has ORM cache definition, so it needs to update when you change something.
+npm run sync
 ```
 
 GUI for SQLite(web)

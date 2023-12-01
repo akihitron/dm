@@ -12,23 +12,29 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import Typography from '@mui/material/Typography';
 // import TextBoxWithCopyButton from '../libs/TextBoxWithCopyButton';
 
-import { Terminal } from 'xterm'
+import { Terminal } from 'xterm';
+import { FitAddon } from 'xterm-addon-fit';
 
 let terminal = new Terminal({
-	fontFamily:"courier-new, courier, monospace",
+	fontFamily: "courier-new, courier, monospace",
 	// fontFamily:"courier-new, courier, monospace",
-	fontWeight:undefined,
-	fontSize:14
+	fontWeight: undefined,
+	fontSize: 14
 });
 // let terminal = new Terminal({ fontFamily:"'Monaco','Menlo','Ubuntu Mono','Consolas','source-code-pro',monospace",fontSize:14});
+const socket = new WebSocket('wss://docker.example.com/containers/mycontainerid/attach/ws');
+
 export const TerminalComponent = () => {
-  const [term, setTerm] = useState(terminal);
-  useEffect(() => {
-	const dom = document.getElementById('terminal');
-	if (!dom) return;
-	if (dom.children.length > 0) return;
-	term.open(dom);
-	term.write(`AMD5950X-4090:dm$ ls
+	const [term, setTerm] = useState(terminal);
+	useEffect(() => {
+		const dom = document.getElementById('terminal');
+		if (!dom) return;
+		if (dom.children.length > 0) return;
+		const fitAddon = new FitAddon();
+		terminal.loadAddon(fitAddon);
+		term.open(dom);
+		fitAddon.fit();
+		term.write(`AMD5950X-4090:dm$ ls
 a.sh  backend  compute   f         g        m          tmp   u
 b     c        debug.sh  frontend  kill.sh  README.md  t.sh  w.sh
 AMD5950X-4090:dm$ cd backend/
@@ -37,9 +43,9 @@ jest.config.js  package-lock.json  README.template.md  utils
 nodemon.json    pm2config.json     src
 package.json    prisma             tsconfig.json
 AMD5950X-4090:backend$`.replace(/\n/g, "\r\n"));
-})
-//   term.write('Hello from \x1B[1;3;31mxterm.js\x1B[0m $ ');
-  return <div id="terminal" style={{fontFamily: "unset"  }}/>
+	})
+	//   term.write('Hello from \x1B[1;3;31mxterm.js\x1B[0m $ ');
+	return <div id="terminal" style={{ fontFamily: "unset" }} />
 }
 
 
@@ -270,7 +276,7 @@ function QuickSearchToolbar() {
 			}}
 		>
 			<GridToolbarQuickFilter
-			sx={{width:"100%", padding:1}}
+				sx={{ width: "100%", padding: 1 }}
 				quickFilterParser={(searchInput: string) =>
 					searchInput
 						.split(',')
@@ -459,73 +465,73 @@ export default function InstancesGrid(prop: any) {
 			{something_error.length > 0 ? <Alert sx={{ marginBottom: 1 }} severity="error">{something_error}</Alert> : <></>}
 
 			<h1>Instances</h1>
-			<Box sx={{ height: 600 }}>
 
-				<DataGrid
-					rows={instance_list}
-					columns={columns}
-					initialState={{
-						pagination: {
-							paginationModel: {
-								pageSize: 100,
-							},
+			<DataGrid
+				sx={{ maxHeight: 600, minHeight: 200  }}
+
+				rows={instance_list}
+				columns={columns}
+				initialState={{
+					pagination: {
+						paginationModel: {
+							pageSize: 100,
 						},
-					}}
-					slots={{ toolbar: QuickSearchToolbar }}
+					},
+				}}
+				slots={{ toolbar: QuickSearchToolbar }}
 
-					pageSizeOptions={[100]}
-					checkboxSelection
-					disableRowSelectionOnClick
+				pageSizeOptions={[100]}
+				checkboxSelection
+				disableRowSelectionOnClick
 
-					onRowClick={(event: any) => {
-						const instance_id = event.id;
-						if (instance_id) {
-							const instance = instance_list.find((u: any) => u.id == instance_id);
-							if (instance) {
-								setSSHTabInstanceName(instance.name);
-								setSSHTabAddress(instance.ipv4);
-								port_map_list.forEach((p: any) => {
-									if (p.instance_id == instance.id) {
-										setSSHTabPort(p.port);
-									}
-								});
-								setSSHTabKeyName(instance.ssh_key_name);
-								setSelectedInstance(instance);
-							} else {
-								setSelectedInstance(null);
-							}
+				onRowClick={(event: any) => {
+					const instance_id = event.id;
+					if (instance_id) {
+						const instance = instance_list.find((u: any) => u.id == instance_id);
+						if (instance) {
+							setSSHTabInstanceName(instance.name);
+							setSSHTabAddress(instance.ipv4);
+							port_map_list.forEach((p: any) => {
+								if (p.instance_id == instance.id) {
+									setSSHTabPort(p.port);
+								}
+							});
+							setSSHTabKeyName(instance.ssh_key_name);
+							setSelectedInstance(instance);
 						} else {
 							setSelectedInstance(null);
 						}
+					} else {
+						setSelectedInstance(null);
+					}
 
-					}}
+				}}
 
-					sx={{
-						'& .rows-managed': {
-							background: '#77777722 !important'
-						},
-						'& .rows-unmanaged': {
-							opacity: 0.25
-							// background: '#2C7CFF33 !important'
-						}
-					}}
-					getRowClassName={(params: any) => {
-						const row = params.row;
-						if (row.managed_sym == "Y") {
-							return 'rows-managed'
-						}
-						return 'rows-unmanaged'
-					}}
+				sx={{
+					'& .rows-managed': {
+						background: '#77777722 !important'
+					},
+					'& .rows-unmanaged': {
+						opacity: 0.25
+						// background: '#2C7CFF33 !important'
+					}
+				}}
+				getRowClassName={(params: any) => {
+					const row = params.row;
+					if (row.managed_sym == "Y") {
+						return 'rows-managed'
+					}
+					return 'rows-unmanaged'
+				}}
 
-					onRowSelectionModelChange={(selectedRows: any) => {
-						setSelectedRows(selectedRows);
-						console.log(selectedRows);
-					}}
-				/>
-			</Box>
+				onRowSelectionModelChange={(selectedRows: any) => {
+					setSelectedRows(selectedRows);
+					console.log(selectedRows);
+				}}
+			/>
 
 			{operation_error.length > 0 ? <Alert sx={{ marginBottom: 1, marginTop: 1 }} severity="error">{operation_error}</Alert> : <></>}
-			<Box sx={{ width: '100%', marginTop: 2, textAlign: processing_flag?"center":"right" }}>
+			<Box sx={{ width: '100%', marginTop: 2, textAlign: processing_flag ? "center" : "right" }}>
 				{processing_flag ? <CircularProgress /> : <>
 					<Button sx={{ width: "20%", marginLeft: 1 }} variant="contained" onClick={() => {
 						setButtonName("start");
@@ -930,7 +936,7 @@ export default function InstancesGrid(prop: any) {
 
 			{tab == 3 ? <>
 				<Box sx={{ boxShadow: "0px 0px 2px black" }}>
-					<TerminalComponent/>
+					<TerminalComponent />
 					{/* <Card>
 						<CardContent>
 							<Paper sx={{
@@ -949,7 +955,7 @@ export default function InstancesGrid(prop: any) {
 					</Card> */}
 				</Box>
 			</> : ""}
-			
+
 
 			<ConfirmDialog open={showConfirmDialog} setOpen={setConfirmDialogVisibility} onSubmit={(flag: boolean) => {
 				clear_error_messages();

@@ -3,12 +3,15 @@ erDiagram
 
   "user" {
     String id "🗝️"
+    String name 
+    String phone 
     String email 
     Int instance_limit 
     Int node_limit 
     String password_hash 
     String password_salt 
     String permission 
+    Int retry_count 
     Boolean activated 
     String email_confirmation_hash "❓"
     DateTime email_confirmation_expires "❓"

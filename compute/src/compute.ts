@@ -11,6 +11,8 @@ import commandExists from 'command-exists';
 import assert from 'assert';
 import util from 'util';
 import process from 'node:process';
+import net from 'node:net';
+import url from 'url';
 import { Express } from 'express';
 
 import { Driver, CreateDriver } from './drivers/driver';
@@ -22,7 +24,7 @@ import _node_fetch from 'isomorphic-fetch';
 
 
 // Asset bundle
-import {help_text} from './help';
+import { help_text } from './help';
 
 import ConfigureServer from './configure';
 
@@ -56,7 +58,7 @@ const node_fetch = _node_fetch;
 let tmp_cookie_path = "";
 let ClientCookie: string = fs.existsSync(tmp_cookie_path) ? fs.readFileSync(tmp_cookie_path).toString() : "";
 async function HTTP_POST(url: string, body: any) {
-    logger.log("POST:",url);
+    logger.log("POST:", url);
     const body_params = JSON.stringify(body);
     return await node_fetch(url, { method: "POST", headers: { Cookie: ClientCookie, 'Content-Type': 'application/json' }, credentials: 'same-origin', body: body_params }).then(async res => {
         if (res.status != 200) {
@@ -233,11 +235,11 @@ class ComputeNode {
 
         const dpkg = await commandExists('dpkg').catch(e => false);
         if (dpkg) {
-            await exec("dpkg --list | grep nvidia-jetpack").then((r:any) => {
+            await exec("dpkg --list | grep nvidia-jetpack").then((r: any) => {
                 if (r.stdout.includes("nvidia-jetpack")) is_jetson = available_nvidia = available_nvidia_docker = true;
-            }).catch((e:any) => {});
+            }).catch((e: any) => { });
         }
-        
+
         config.gpu = (available_nvidia || available_radeon) ? true : false;
         config.gpu_driver = available_nvidia ? "cuda" : available_radeon ? "rocm" : null;
         config.nvidia_docker = available_nvidia_docker ? true : false;
@@ -297,8 +299,8 @@ class ComputeNode {
         const tm = performance.now();
         const driver = this.driver
         const instances = await driver?.list_instance({});
-        const total = Math.floor(config.total_storage/1024/1024);
-        const free = Math.floor(config.free_storage/1024/1024);
+        const total = Math.floor(config.total_storage / 1024 / 1024);
+        const free = Math.floor(config.free_storage / 1024 / 1024);
 
         for (const instance of instances ?? []) {
             if (instance.network_mode == "host") {
@@ -354,7 +356,7 @@ class ComputeNode {
         logger.log("Memory usage info updated in", Round(performance.now() - tm, 1), "ms");
     }
 
-    async login_with_api_key(api_key_id:string, api_key_secret: string, node_id: string): Promise<boolean | null> {
+    async login_with_api_key(api_key_id: string, api_key_secret: string, node_id: string): Promise<boolean | null> {
         const end_point = this.config.manipulator.end_point;
         try {
             const check_login = await node_fetch(path.join(end_point, "v1/user/check_login"), { method: "GET", headers: { Cookie: ClientCookie, 'Content-Type': 'application/json' }, credentials: 'same-origin' }).then(res => res.json()).then(j => {
@@ -449,9 +451,9 @@ class ComputeNode {
             arch: config.arch,
             cpu: config.cpu,
             cpu_info: config.cpu_info,
-            memory: Math.floor(config.memory/1024/1024),//MB
-            total_storage: Math.floor(config.total_storage/1024/1024),//GB
-            free_storage: Math.floor(config.free_storage/1024/1024),//GB
+            memory: Math.floor(config.memory / 1024 / 1024),//MB
+            total_storage: Math.floor(config.total_storage / 1024 / 1024),//GB
+            free_storage: Math.floor(config.free_storage / 1024 / 1024),//GB
             gpu: config.gpu,
             gpu_info: config.gpu_info,
             gpu_driver: config.gpu_driver,
@@ -539,9 +541,9 @@ class ComputeNode {
                                 const params = event.data;
                                 if (params.method == "ping") {
                                     event.result = "pong";
-                                // } else if (params.method == "refresh") {
-                                //     await this.refresh(config);
-                                //     event.result = "ok";
+                                    // } else if (params.method == "refresh") {
+                                    //     await this.refresh(config);
+                                    //     event.result = "ok";
                                 } else {
                                     event.result = await driver?.handle_event(event.data);
                                 }
@@ -630,9 +632,54 @@ class ComputeNode {
 async function main() {
     const config = Config(APP_NAME, { silent: !verbose, config_path: config_path });
 
+    if (config.node_id == null) { logger.error("node_id is not set."); process.exit(1); }
+    if (config.manipulator?.end_point == null) { logger.error("manipulator.end_point is not set."); process.exit(1); }
+    if (config.api_key_id == null) { logger.error("api_key_id is not set."); process.exit(1); }
+    if (config.api_key_secret == null) { logger.error("api_key_secret is not set."); process.exit(1); }
+    if (config.ipv4_ports == null) { logger.error("ipv4_ports is not set."); process.exit(1); }
+
+    { const k = "node_id"; const s = config[k]; if (s.indexOf("<") >= 0) { logger.error(`Invalid "${k}" : "${config[k]}"`); process.exit(1); } }
+    { const k = "api_key_id"; const s = config[k]; if (s.indexOf("<") >= 0) { logger.error(`Invalid "${k}" : "${config[k]}"`); process.exit(1); } }
+    { const k = "api_key_secret"; const s = config[k]; if (s.indexOf("<") >= 0) { logger.error(`Invalid "${k}" : "${config[k]}"`); process.exit(1); } }
+
+    {
+        const end_point = config.manipulator.end_point;
+        const parsedUrl = url.parse(end_point);
+        const hostname = parsedUrl.hostname as string;
+        const port = parseInt(parsedUrl.port ?? "80");
+        const connection_status = await new Promise((resolve, reject) => {
+            const client = net.createConnection({ host: hostname, port: port, timeout: 1000 }, () => {
+                client.end();
+                resolve(true);
+            });
+            client.on('error', (err: any) => {
+                if (err.code != "ECONNREFUSED") {
+                    console.error('Error:', err);
+                }
+                resolve(false);
+            });
+            client.on('timeout', () => {
+                console.error('Timeout');
+                client.destroy();
+                resolve(false);
+            });
+        });
+        if (connection_status == false) {
+            logger.error("Cannot connect to the manipulator:", end_point);
+            process.exit(1);
+        }
+        logger.success(`Successfully connected to the manipulator:`, end_point);
+    }
+
+
+    config.use_ipv4 = config.use_ipv4 ?? true;
+    config.use_ipv6 = config.use_ipv6 ?? false;
+    config.driver = config.driver ?? "docker";
+    config.IPv4_CheckURL = config.IPv4_CheckURL ?? "https://api.ipify.org";
+    config.IPv6_CheckURL = config.IPv6_CheckURL ?? "https://api64.ipify.org";
 
     // Prevent double process: fd lock style.
-    if (true) {                                                                         
+    if (true) {
         const PORT = 48571; // TODO: Change to more smart way.
         const server = require('http').createServer();
         server.listen(PORT, '127.0.0.1');
@@ -649,17 +696,6 @@ async function main() {
         });
     }
 
-    if (config.node_id.indexOf("<") >= 0) {
-        logger.error("Self node_id:", config.node_id);
-    } else {
-        logger.log("Self node_id:", config.node_id);
-    }
-    if (config.node_id == null) {
-        logger.error(" node_id is not set.");
-        logger.error(" Please make a new node_id before start the node and set into the config file.");
-        logger.error(" Exit.");
-        process.exit(1);
-    }
     tmp_cookie_path = path.join(os.tmpdir(), SecureHash(HOST_NAME + config.node_id));
     const compute_node = new ComputeNode(config);
     if (await compute_node.test()) {
@@ -669,6 +705,8 @@ async function main() {
         logger.error(" Exit.");
         process.exit(1);
     }
+
+    return true;
 }
 
 if (require.main === module) {

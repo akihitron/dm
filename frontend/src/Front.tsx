@@ -27,6 +27,7 @@ import ListItemButton from '@mui/material/ListItemButton';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
 import KeyIcon from '@mui/icons-material/Key';
+import VpnKeyIcon from '@mui/icons-material/VpnKey';
 import MenuIcon from '@mui/icons-material/Menu';
 import Toolbar from '@mui/material/Toolbar';
 import Typography from '@mui/material/Typography';
@@ -42,6 +43,7 @@ import ImagesGrid from './data/Images';
 import PortMapsGrid from './data/PortMaps';
 import MembersGrid from './data/Members';
 import Account from './data/Account';
+import APIKeysGrid from './data/APIKeys';
 
 
 
@@ -98,7 +100,7 @@ function ContentComponent(props: any) {
 		{compute_nodes && compute_nodes.length == 0 ? <Alert sx={{ '&:hover': { cursor: 'pointer' }, marginBottom: 1 }} severity="warning" onClick={() => { setNavigate("compute_nodes") }}>{"There is no node. Please register a node and cast info to front server from command or ask to the administrator."}</Alert> : <></>}
 		{compute_nodes && compute_nodes.length > 0 && api_keys?.length == 0 ? <Alert sx={{ '&:hover': { cursor: 'pointer' }, marginBottom: 1 }} severity="warning" onClick={() => { setNavigate("account") }}>{"Your node needs API key. Please generate an API key on 'Account' panel."}</Alert> : <></>}
 		{compute_nodes && compute_nodes.length > 0 && activated_compute_nodes?.length == 0 ? <Alert sx={{ '&:hover': { cursor: 'pointer' }, marginBottom: 1 }} severity="warning" onClick={() => { setNavigate("compute_nodes") }}>{"There are inactive nodes. Please check process and config.json on node."}</Alert> : <></>}
-		
+
 		{ssh_keys && ssh_keys.length == 0 ? <Alert sx={{ '&:hover': { cursor: 'pointer' }, marginBottom: 1 }} severity="warning" onClick={() => { setNavigate("ssh_keys") }}>{"No SSH key. Please register a your public key first."}</Alert> : <></>}
 		{images && images.length == 0 ? <Alert sx={{ '&:hover': { cursor: 'pointer' }, marginBottom: 1 }} severity="warning" onClick={() => { setNavigate("images") }}>{"There is no registered OS image."}</Alert> : <></>}
 		{/* {users && users.length == 0 ? <Alert sx={{'&:hover': {cursor: 'pointer'} , marginBottom: 1 }} severity="warning">{"There is no user. You can create root user on top page."}</Alert> : <></>} */}
@@ -113,6 +115,7 @@ function ContentComponent(props: any) {
 			<Route path='port_maps' element={<PortMapsGrid />} />
 			<Route path='members' element={<MembersGrid />} />
 			<Route path='account' element={<Account onUpdated={() => setNeedsUpdate(Math.random())} />} />
+			<Route path='api_keys' element={<APIKeysGrid onUpdated={() => setNeedsUpdate(Math.random())} />} />
 			{/* <Route path='/networks' element={<PortMapsGrid data={port_maps} />} /> */}
 			{is_administrator ? <Route path='users' element={<UsersGrid />} /> : <></>}
 		</Routes>
@@ -141,14 +144,6 @@ function ResponsiveDrawer(props: Props) {
 			<Toolbar></Toolbar>
 			<Divider />
 			<List>
-				<ListItem disablePadding selected={selected == "ssh_keys"} onClick={() => { setNavigate("ssh_keys"); }}>
-					<ListItemButton>
-						<ListItemIcon>
-							<KeyIcon />
-						</ListItemIcon>
-						<ListItemText primary={T("left_menu.ssh_keys")} />
-					</ListItemButton>
-				</ListItem>
 				<ListItem disablePadding selected={selected == "compute_nodes"} onClick={() => { setNavigate("compute_nodes"); }}>
 					<ListItemButton>
 						<ListItemIcon>
@@ -181,6 +176,27 @@ function ResponsiveDrawer(props: Props) {
 						<ListItemText primary={T("left_menu.port_maps")} />
 					</ListItemButton>
 				</ListItem>
+			</List>
+			<Divider />
+			<List>
+
+
+			<ListItem disablePadding selected={selected == "ssh_keys"} onClick={() => { setNavigate("ssh_keys"); }}>
+					<ListItemButton>
+						<ListItemIcon>
+							<KeyIcon />
+						</ListItemIcon>
+						<ListItemText primary={T("left_menu.ssh_keys")} />
+					</ListItemButton>
+				</ListItem>
+				<ListItem disablePadding selected={selected == "api_keys"} onClick={() => { setNavigate("api_keys"); }}>
+					<ListItemButton>
+						<ListItemIcon>
+							<VpnKeyIcon />
+						</ListItemIcon>
+						<ListItemText primary={T("left_menu.api_keys")} />
+					</ListItemButton>
+				</ListItem>
 				<ListItem disablePadding selected={selected == "members"} onClick={() => { setNavigate("members"); }}>
 					<ListItemButton>
 						<ListItemIcon>
@@ -189,9 +205,7 @@ function ResponsiveDrawer(props: Props) {
 						<ListItemText primary={T("left_menu.members")} />
 					</ListItemButton>
 				</ListItem>
-			</List>
-			<Divider />
-			<List>
+
 				<ListItem disablePadding selected={selected == "account"} onClick={() => { setNavigate("account"); }}>
 					<ListItemButton>
 						<ListItemIcon>
@@ -201,6 +215,11 @@ function ResponsiveDrawer(props: Props) {
 					</ListItemButton>
 				</ListItem>
 
+
+			</List>
+			<Divider />
+			<List>
+
 				<ListItem disablePadding onClick={() => { U.post("api/v1/user/logout", {}).then(res => { setLogin(false); setUser({}) }).catch(e => { setLogin(false); setUser({}) }) }}>
 					<ListItemButton>
 						<ListItemIcon>
@@ -209,6 +228,7 @@ function ResponsiveDrawer(props: Props) {
 						<ListItemText primary={T("left_menu.logout")} />
 					</ListItemButton>
 				</ListItem>
+
 			</List>
 
 
@@ -233,6 +253,7 @@ function ResponsiveDrawer(props: Props) {
 					</ListItem>
 
 				</List>
+
 
 			</> : <>
 

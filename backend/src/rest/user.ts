@@ -57,23 +57,32 @@ export default async (context: MainContext) => {
 
         try {
             let d_user: any = null;
-            if (!is_password_auth) {
-                logger.log("API Key Auth:", node_id, api_key_id);
-                const exists_api_key_by_id = await ORM.api_key.findUnique({ where: { id: api_key_id } });
-                if (exists_api_key_by_id == null) return res.json({ error: "Invalid api key. [JkL9YywrYF]" });
-                const d_api_key = await ORM.api_key.findFirst({ where: { id: api_key_id, hash: HashPassword(api_key_secret, exists_api_key_by_id.salt, 'sha3-256') } });
-                if (d_api_key == null) return res.json({ error: "Invalid api key. [Z1G6v0xdze]" });
-                const d_node = await ORM.compute_node.findFirst({ where: { id: node_id, user_id:d_api_key.user_id } });
-                if (d_node == null) return res.json({ error: "Invalid node. [IaOeScgyMS]" });
-                d_user = await ORM.user.findUnique({ where: { id: d_api_key.user_id } });
-                if (!d_user) return res.json({ error: "Invalid user. [6RSPKiH60U]" });
-            } else {
-                logger.log("Password auth:", email);
-                const _user = await ORM.user.findFirst({ where: { email: email } });
-                if (_user == null) return res.json({ error: "Invalid email or password. [7k8NH2skt2]" });
+            let success = false;
 
-                d_user = await ORM.user.findFirst({ where: { email: email, password_hash: HashPassword(password, _user.password_salt, 'sha3-256') } });
-                if (!d_user) return res.json({ error: "Invalid email or password. [PxvKeTCqvG]" });
+            try {
+                if (!is_password_auth) {
+                    const exists_api_key_by_id = await ORM.api_key.findUnique({ where: { id: api_key_id } });
+                    if (exists_api_key_by_id == null) return res.json({ error: "Invalid api key. [JkL9YywrYF]" });
+                    const d_api_key = await ORM.api_key.findFirst({ where: { id: api_key_id, hash: HashPassword(api_key_secret, exists_api_key_by_id.salt, 'sha3-256') } });
+                    if (d_api_key == null) return res.json({ error: "Invalid api key. [Z1G6v0xdze]" });
+                    const d_node = await ORM.compute_node.findFirst({ where: { id: node_id, user_id:d_api_key.user_id } });
+                    if (d_node == null) return res.json({ error: "Invalid node. [IaOeScgyMS]" });
+                    d_user = await ORM.user.findUnique({ where: { id: d_api_key.user_id } });
+                    if (!d_user) return res.json({ error: "Invalid user. [6RSPKiH60U]" });
+                } else {
+                    const _user = await ORM.user.findFirst({ where: { email: email } });
+                    if (_user == null) return res.json({ error: "Invalid email or password. [7k8NH2skt2]" });
+    
+                    d_user = await ORM.user.findFirst({ where: { email: email, password_hash: HashPassword(password, _user.password_salt, 'sha3-256') } });
+                    if (!d_user) return res.json({ error: "Invalid email or password. [PxvKeTCqvG]" });
+                }
+                success = true;
+            } finally {
+                if (!is_password_auth) {
+                    success?logger.log("API Key Auth:", node_id, api_key_id):logger.error("API Key Auth Failed:", node_id, api_key_id);
+                } else {
+                    success?logger.log("Password auth:", email):logger.error("Password auth Failed:", email);
+                }
             }
             logger.log(d_user.id, d_user.email, d_user.permission);
             const session_hash = Math.random().toString(32).substring(2);

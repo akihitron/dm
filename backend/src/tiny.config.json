@@ -1,0 +1,9 @@
+{
+  "database": {
+    "driver": "sqlite"
+  },
+  "session_store": {
+    "driver": "memorystore",
+    "secret_key": "<your session secret key>"
+  }
+}

@@ -171,42 +171,42 @@ export default function ImagesGrid(prop: any) {
 		<Box sx={{ width: '100%', marginBottom: 10 }}>
 			{something_error.length > 0 ? <Alert sx={{ marginBottom: 1 }} severity="error">{something_error}</Alert> : <></>}
 			<h1>Images</h1>
-			<Box sx={{ height: 600 }}>
-				<DataGrid
-					rows={image_list}
-					columns={columns}
-					initialState={{
-						pagination: {
-							paginationModel: {
-								pageSize: 100,
-							},
+			<DataGrid
+				rows={image_list}
+				columns={columns}
+				initialState={{
+					pagination: {
+						paginationModel: {
+							pageSize: 100,
 						},
-					}}
-					slots={{ toolbar: QuickSearchToolbar }}
-					sx={{
-						'& .rows-public': {
-							background: '#77777722 !important'
-						},
-						'& .rows-private': {
-							opacity: 0.25
-						}
-					}}
-					getRowClassName={(params: any) => {
-						const row = params.row;
-						if (row.published_sym == "Y") {
-							return 'rows-public'
-						}
-						return 'rows-private'
-					}}
-					rowSelectionModel={selectedRows}
-					pageSizeOptions={[100]}
-					checkboxSelection
-					disableRowSelectionOnClick
-					onRowSelectionModelChange={(selectedRows: any) => {
-						setSelectedRows(selectedRows);
-					}}
-				/>
-			</Box>
+					},
+				}}
+				slots={{ toolbar: QuickSearchToolbar }}
+				sx={{
+					'& .rows-public': {
+						background: '#77777722 !important'
+					},
+					'& .rows-private': {
+						opacity: 0.25
+					},
+					maxHeight: 600,
+					minHeight: 200,
+				}}
+				getRowClassName={(params: any) => {
+					const row = params.row;
+					if (row.published_sym == "Y") {
+						return 'rows-public'
+					}
+					return 'rows-private'
+				}}
+				rowSelectionModel={selectedRows}
+				pageSizeOptions={[100]}
+				checkboxSelection
+				disableRowSelectionOnClick
+				onRowSelectionModelChange={(selectedRows: any) => {
+					setSelectedRows(selectedRows);
+				}}
+			/>
 			{modifyError.length > 0 ? <Alert sx={{ marginBottom: 1, marginTop: 1 }} severity="error">{modifyError}</Alert> : <></>}
 			{processing ? <Box sx={{ width: "100%", display: "flex", justifyContent: "center", alignItems: "center", marginTop: 1, marginBottom: 1 }}><CircularProgress /></Box> : <>
 				<Button sx={{ width: "49%", marginRight: "1%", marginTop: 2 }} variant="contained" onClick={async () => {
@@ -359,6 +359,7 @@ export default function ImagesGrid(prop: any) {
 								setModifyError(ret.error ?? "");
 								console.error(ret.error);
 							}
+							setNeedsUpdate(Math.random());
 						}).catch(e => {
 							setModifyError(e);
 							console.error(e)

@@ -89,11 +89,11 @@ export default function PortMapsGrid(prop: any) {
 
 
 	return (
-		<Box sx={{ height: 250, width: '100%', marginBottom: 10 }}>
+		<Box sx={{ width: '100%', marginBottom: 10 }}>
 			<h1>Port maps</h1>
-			<Box sx={{ height: 400 }}>
 				<DataGrid
-					rows={data}
+				sx={{ maxHeight: 400, minHeight: 200 }}
+				rows={data}
 					columns={columns}
 					initialState={{
 						pagination: {
@@ -109,7 +109,6 @@ export default function PortMapsGrid(prop: any) {
 						setSelectedRows(selectedRows);
 					}}
 				/>
-			</Box>
 			{errorLocation == "top" && somethingError.length > 0 ? <Alert sx={{ marginBottom: 1, marginTop: 1 }} severity="error">{somethingError}</Alert> : <></>}
 			<Button sx={{ width: "100%", marginTop: 2, marginBottom: 10 }} variant="contained" onClick={() => {
 				setConfirmDialogVisibility(true);

@@ -171,8 +171,8 @@ export default function ComputeNodesGrid(prop: any) {
 	return (
 		<Box sx={{ width: '100%', marginBottom: 10 }}>
 			<h1>Nodes</h1>
-			<Box sx={{ height: 400 }}>
 			<DataGrid
+				sx={{ maxHeight: 400, minHeight: 200  }}
 				rows={data}
 				columns={columns}
 				initialState={{
@@ -189,7 +189,6 @@ export default function ComputeNodesGrid(prop: any) {
 					setSelectedRows(selectedRows);
 				}}
 			/>
-			</Box>
 
 			{/* {fetching ? <CardHeader
 						avatar={<CircularProgress />}

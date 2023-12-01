@@ -25,6 +25,11 @@ if [ "$system_name" = "Linux" ]; then
     OS=linux
 elif [ "$system_name" = "Darwin" ]; then
     OS=macos
+
+    echo "MacOS auto installer is not supported."
+    echo "There are no plans to provide notalization, so please build the source yourself."
+    exit 1
+
 else
     echo "Other system: $system_name"
     exit 1
@@ -35,8 +40,8 @@ echo "$URL/$OS-$ARCH/$BIN"
 
 curl -fsSL -o "/tmp/$BIN" "$URL/$OS-$ARCH/$BIN"
 tar -xJf "/tmp/$BIN" -C /tmp
-chmod +x /tmp/dmc
-sudo mv /tmp/dmc /usr/local/bin/dmc
+chmod +x /tmp/compute
+sudo mv /tmp/compute /usr/local/bin/dmc
 echo "Installed /usr/local/bin/dmc"
 rm "/tmp/$BIN"
 
@@ -77,14 +82,10 @@ WantedBy=multi-user.target
 
 EOF
 
-    sudo systemctl daemon-reload
-    sudo systemctl enable dmc
-    # sudo systemctl start dmc
-    # sudo systemctl status dmc
     echo "Installed /etc/systemd/system/dmc.service"
-    echo "Run: sudo systemctl start dmc"
-    echo "Run: sudo systemctl status dmc"
-    
+    echo "sudo systemctl enable dmc"
+    echo "# Run: sudo systemctl start dmc"
+    echo "# Run: sudo systemctl status dmc"
 
 elif [ "$system_name" = "Darwin" ]; then
     OS=macos
@@ -92,4 +93,3 @@ else
     echo "Other system: $system_name"
     exit 1
 fi
-

@@ -4,7 +4,7 @@ generator client {
 
 generator erd {
   provider = "prisma-erd-generator"
-  output = "scheme.md"
+  output   = "scheme.md"
 }
 
 datasource db {
@@ -14,12 +14,15 @@ datasource db {
 
 model user {
   id             String @id @default(cuid())
+  name           String @default("")
+  phone          String @default("")
   email          String @unique
   instance_limit Int    @default(10)
   node_limit     Int    @default(3)
   password_hash  String @unique
   password_salt  String @unique
   permission     String
+  retry_count    Int    @default(0)
 
   activated                  Boolean   @default(false)
   email_confirmation_hash    String?
@@ -29,9 +32,9 @@ model user {
 
   created_at DateTime @default(now())
 
-  ssh_keys  ssh_key[]
-  api_keys  api_key[]
-  compute_nodes      compute_node[]
+  ssh_keys              ssh_key[]
+  api_keys              api_key[]
+  compute_nodes         compute_node[]
   managed_compute_nodes managed_compute_node[]
   managed_images        managed_image[]
   managed_instances     managed_instance[]
@@ -47,8 +50,8 @@ model ssh_key {
   user_id    String
   created_at DateTime @default(now())
 
+  user user @relation(fields: [user_id], references: [id])
 
-  user       user   @relation(fields: [user_id], references: [id])
   @@index([user_id], name: "ssh_key_user_id_index")
 }
 
@@ -60,7 +63,8 @@ model api_key {
   user_id    String
   created_at DateTime @default(now())
 
-  user       user   @relation(fields: [user_id], references: [id])
+  user user @relation(fields: [user_id], references: [id])
+
   @@index([user_id], name: "api_key_user_id_index")
 }
 
@@ -79,9 +83,9 @@ model image {
   native_timestamp DateTime @default(now())
   created_at       DateTime @default(now())
 
-  compute_node       compute_node   @relation(fields: [node_id], references: [id])
-  instances          instance[]
-  managed_images     managed_image[]
+  compute_node   compute_node    @relation(fields: [node_id], references: [id])
+  instances      instance[]
+  managed_images managed_image[]
 
   // @@unique([node_id, url], name: "image_id_url_unique")
   @@index([key], name: "image_key_index")
@@ -116,7 +120,7 @@ model compute_node {
   updated_at DateTime @default(now())
   created_at DateTime @default(now())
 
-  user       user   @relation(fields: [user_id], references: [id])
+  user      user       @relation(fields: [user_id], references: [id])
   images    image[]
   instances instance[]
   port_maps port_map[]
@@ -153,7 +157,7 @@ model instance {
   updated_at    DateTime @default(now())
 
   managed_instance managed_instance[]
-  port_maps port_map[]
+  port_maps        port_map[]
 
   compute_node compute_node @relation(fields: [node_id], references: [id])
   image        image?       @relation(fields: [image_id], references: [id])
@@ -200,7 +204,6 @@ model managed_instance {
   compute_node compute_node @relation(fields: [node_id], references: [id])
   user         user         @relation(fields: [user_id], references: [id])
   instance     instance?    @relation(fields: [instance_id], references: [id])
-
 
   @@index([instance_id], name: "managed_instance_instance_id_index")
   @@index([node_id], name: "managed_instance_node_id_index")
@@ -252,5 +255,6 @@ model test_b {
   timestamp   DateTime @default(now())
 
   test_a test_a? @relation(fields: [test_a_id], references: [id])
+
   @@index([test_a_id], name: "test_b_test_a_id_index")
 }
