@@ -14,6 +14,7 @@
 		"password": "Password",
 		"new_password": "New password",
 		"confirm_password": "Confirm password",
+		"old_password": "Old password",
 		"language": "Language",
 		"messages": "Messages",
 		"notifications": "Notifications",

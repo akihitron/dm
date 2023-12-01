@@ -1,5 +1,5 @@
 import { Express, Request, Response } from 'express';
-import { MainContext, RejectNotLoggedIn, CheckAdmin, CheckJSONProperties, GenerateUUID, GenerateSalt, HashPassword } from "../global";
+import { MainContext, RejectNotLoggedIn, CheckAdmin, CheckJSONProperties, GenerateUUID, GenerateSalt, HashPassword, RejectAPIKeyLoggedIn } from "../global";
 import logger from '../logger';
 import { PrismaClient } from '@prisma/client';
 
@@ -65,23 +65,23 @@ export default async (context: MainContext) => {
                     if (exists_api_key_by_id == null) return res.json({ error: "Invalid api key. [JkL9YywrYF]" });
                     const d_api_key = await ORM.api_key.findFirst({ where: { id: api_key_id, hash: HashPassword(api_key_secret, exists_api_key_by_id.salt, 'sha3-256') } });
                     if (d_api_key == null) return res.json({ error: "Invalid api key. [Z1G6v0xdze]" });
-                    const d_node = await ORM.compute_node.findFirst({ where: { id: node_id, user_id:d_api_key.user_id } });
+                    const d_node = await ORM.compute_node.findFirst({ where: { id: node_id, user_id: d_api_key.user_id } });
                     if (d_node == null) return res.json({ error: "Invalid node. [IaOeScgyMS]" });
                     d_user = await ORM.user.findUnique({ where: { id: d_api_key.user_id } });
                     if (!d_user) return res.json({ error: "Invalid user. [6RSPKiH60U]" });
                 } else {
                     const _user = await ORM.user.findFirst({ where: { email: email } });
                     if (_user == null) return res.json({ error: "Invalid email or password. [7k8NH2skt2]" });
-    
+
                     d_user = await ORM.user.findFirst({ where: { email: email, password_hash: HashPassword(password, _user.password_salt, 'sha3-256') } });
                     if (!d_user) return res.json({ error: "Invalid email or password. [PxvKeTCqvG]" });
                 }
                 success = true;
             } finally {
                 if (!is_password_auth) {
-                    success?logger.log("API Key Auth:", node_id, api_key_id):logger.error("API Key Auth Failed:", node_id, api_key_id);
+                    success ? logger.log("API Key Auth:", node_id, api_key_id) : logger.error("API Key Auth Failed:", node_id, api_key_id);
                 } else {
-                    success?logger.log("Password auth:", email):logger.error("Password auth Failed:", email);
+                    success ? logger.log("Password auth:", email) : logger.error("Password auth Failed:", email);
                 }
             }
             logger.log(d_user.id, d_user.email, d_user.permission);
@@ -90,6 +90,7 @@ export default async (context: MainContext) => {
                 hash: session_hash,
                 user_id: d_user.id,
                 email: d_user.email,
+                is_api_key_session: !is_password_auth,
                 is_administrator: d_user.permission == "administrator",
                 instance_limit: d_user.instance_limit,
                 node_limit: d_user.node_limit,
@@ -267,7 +268,7 @@ export default async (context: MainContext) => {
         }
     });
 
-    app.post('/v1/user/register', CommonLimiter, RejectNotLoggedIn, CheckAdmin, async (req: Request, res: Response) => {
+    app.post('/v1/user/register', CommonLimiter, RejectNotLoggedIn, RejectAPIKeyLoggedIn, CheckAdmin, async (req: Request, res: Response) => {
         const { _error_, name, password, email } = CheckJSONProperties([{ key: "name", nullable: true }, "email", "password"], req);
         if (_error_) return res.json({ error: _error_ });
         try {
@@ -285,7 +286,44 @@ export default async (context: MainContext) => {
                     node_limit: 4,
                 }
             }));
-            res.json({ error: null, data: data });
+            res.json({ error: null, data: {} });
+        } catch (e) {
+            logger.error(e);
+            res.json({ error: "Internal Server Error [pvz28KZAPQ]" });
+        }
+    });
+
+    app.post('/v1/user/change_password', CommonLimiter, RejectNotLoggedIn, RejectAPIKeyLoggedIn, async (req: Request, res: Response) => {
+        const { _error_, email, password, old_password } = CheckJSONProperties(["email", "password", {key:"old_password", nullable:true}], req);
+        if (_error_) return res.json({ error: _error_ });
+        const is_administrator = req.session?.user?.is_administrator;
+        const user_id = req.session?.user?.user_id;
+        if (!is_administrator && old_password == null) return res.json({ error: "Old password is required. [bBiBMPiV47]" })
+        if (password.length < 8) return res.json({ error: "Password must be at least 8 characters. [KHBWCWa8bs]" })
+        // TODO: Email validation
+        try {
+            // Check user exists
+            let user = null;
+            if (is_administrator)  {
+                user = await ORM.user.findFirst({ where: { email: email } });
+            } else {
+                if (old_password.length < 8) return res.json({ error: "Password must be at least 8 characters. [561PsqVt2A]" })
+                user = await ORM.user.findFirst({ where: { email: email, id: user_id } });
+                if (user == null) return res.json({ error: "Does not exists. [fbmj5EHgIE]" });
+                const salt = user?.password_salt;
+                user = await ORM.user.findFirst({ where: { email: email, id: user_id, password_hash:HashPassword(old_password, salt, 'sha3-256') } });
+            } 
+            if (user == null) return res.json({ error: "Does not exists. [GVGHLLUnnU]" });
+            const salt = GenerateSalt(64);
+            const data = (await ORM.user.update({
+                where: { id: user.id },
+                data: {
+                    password_salt: salt,
+                    password_hash: HashPassword(password, salt, 'sha3-256')
+                }
+            }));
+            logger.log(data);
+            res.json({ error: null, data: {} });
         } catch (e) {
             logger.error(e);
             res.json({ error: "Internal Server Error [pvz28KZAPQ]" });
@@ -293,12 +331,14 @@ export default async (context: MainContext) => {
     });
 
 
-    app.post('/v1/user/delete', CommonLimiter, RejectNotLoggedIn, CheckAdmin, async (req: Request, res: Response) => {
+    app.post('/v1/user/delete', CommonLimiter, RejectNotLoggedIn, RejectAPIKeyLoggedIn, async (req: Request, res: Response) => {
         const { _error_, user_id } = CheckJSONProperties(["user_id"], req);
         if (_error_) return res.json({ error: _error_ });
+        const is_administrator = req.session?.user?.is_administrator;
+        const _user_id = is_administrator ? user_id : (req.session?.user?.user_id);
         try {
             // Check user exists
-            const user = await ORM.user.findUnique({ where: { id: user_id } });
+            const user = await ORM.user.findUnique({ where: { id: _user_id } });
             if (!user) return res.json({ error: "Does not exists. [nUGVGLUnHL]" });
             await ORM.managed_compute_node.deleteMany({ where: { user_id: user_id } });
             await ORM.managed_image.deleteMany({ where: { user_id: user_id } });

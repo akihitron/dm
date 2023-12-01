@@ -46,7 +46,7 @@ const columns: GridColDef[] = [
 export default function UsersGrid(prop: any) {
 	const { i18n } = useTranslation();
 	const T = i18n.t;
-  
+
 	const { is_administrator, is_logged_in } = useStore();
 	const [users, setUsers] = useState<Array<any>>([]);
 
@@ -56,7 +56,7 @@ export default function UsersGrid(prop: any) {
 	const name_input = useRef<HTMLInputElement | null>(null);
 	const email_input = useRef<HTMLInputElement | null>(null);
 	const password_input = useRef<HTMLInputElement | null>(null);
-  
+
 	const [instance_limit, setInstanceLimit] = useState(0);
 	const [node_limit, setNodeLimit] = useState(0);
 	const [permission, setPermission] = useState(0);
@@ -93,25 +93,25 @@ export default function UsersGrid(prop: any) {
 	return (
 		<Box sx={{ height: 250, width: '100%', marginBottom: 10 }}>
 			<h1>Users</h1>
-				<DataGrid
-				sx={{maxHeight: 400, minHeight: 200 }}
+			<DataGrid
+				sx={{ maxHeight: 400, minHeight: 200 }}
 				rows={data}
-					columns={columns}
-					initialState={{
-						pagination: {
-							paginationModel: {
-								pageSize: 100,
-							},
+				columns={columns}
+				initialState={{
+					pagination: {
+						paginationModel: {
+							pageSize: 100,
 						},
-					}}
-					pageSizeOptions={[100]}
-					checkboxSelection
-					disableRowSelectionOnClick
-					onRowSelectionModelChange={(selectedRows: any) => {
-						setSelectedRows(selectedRows);
-					}}
+					},
+				}}
+				pageSizeOptions={[100]}
+				checkboxSelection
+				disableRowSelectionOnClick
+				onRowSelectionModelChange={(selectedRows: any) => {
+					setSelectedRows(selectedRows);
+				}}
 
-				/>
+			/>
 			{error_location == "delete" && something_error.length > 0 ? <Alert sx={{ marginBottom: 1, marginTop: 1 }} severity="error">{something_error}</Alert> : <></>}
 			<Button sx={{ width: "100%", marginTop: 2, marginBottom: 10 }} variant="contained" onClick={() => {
 				setConfirmDialogVisibility(true);
@@ -119,98 +119,98 @@ export default function UsersGrid(prop: any) {
 
 			<h1>Register user</h1>
 			<Card>
-					<CardContent>
-						<TextField
-							label="Name"
-							variant="outlined"
-							required fullWidth
-							// value={name}
-							inputRef={name_input}
-							// onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
-							// 	const em = email_input?.current?.value as string;
-							// 	const ps = password_input?.current?.value as string;
-							// 	if (!U.check_email(em)) {
-							// 	  setInputEmailError(true);
-							// 	} else {
-							// 	  setInputEmailError(false);
-							// 	}
-							// 	const available_to_post = U.check_email(em) && U.check_password(ps);
-							// 	setLoginButtonState(!available_to_post);
-							//   }
-							margin="normal"
-						/>
-						<TextField
-							label="Email"
-							variant="outlined"
-							required fullWidth
-							inputRef={email_input}
+				<CardContent>
+					<TextField
+						label="Name"
+						variant="outlined"
+						required fullWidth
+						// value={name}
+						inputRef={name_input}
+						// onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
+						// 	const em = email_input?.current?.value as string;
+						// 	const ps = password_input?.current?.value as string;
+						// 	if (!U.check_email(em)) {
+						// 	  setInputEmailError(true);
+						// 	} else {
+						// 	  setInputEmailError(false);
+						// 	}
+						// 	const available_to_post = U.check_email(em) && U.check_password(ps);
+						// 	setLoginButtonState(!available_to_post);
+						//   }
+						margin="normal"
+					/>
+					<TextField
+						label="Email"
+						variant="outlined"
+						required fullWidth
+						inputRef={email_input}
 
-							onChange={() => {
-								const em = email_input?.current?.value as string ?? "";
-								if (!U.check_email(em)) {
-									setSomethingError("Invalid email.");
-									setErrorLocation("register");
-								} else {
-									setSomethingError("");
-									setErrorLocation("");
-								}
-							}}
-							margin="normal"
-						/>
-						<TextField
-							label="Password"
-							variant="outlined"
-							required fullWidth
-							type='password'
-							inputRef={password_input}
-
-							onChange={() => {
-								const em = password_input?.current?.value as string ?? "";
-								
-								if (!U.check_password(em)) {
-									setSomethingError("Invalid password.");
-									setErrorLocation("register");
-								} else {
-									setSomethingError("");
-									setErrorLocation("");
-								}
-							}}							
-							margin="normal"
-						/>
-
-						{error_location == "register" && something_error.length > 0 ? <Alert sx={{ marginBottom: 1, marginTop: 1 }} severity="error">{something_error}</Alert> : <></>}
-						<Button sx={{ width: "100%", marginTop: 2, marginBottom: 10 }} variant="contained" onClick={() => {
-
-							U.post('api/v1/user/register', {
-								email: email_input?.current?.value,
-								password: password_input?.current?.value,
-								name: name_input?.current?.value
-							}).then((ret: any) => {
-								if (ret.error) {
-									setSomethingError(ret.error);
-									setErrorLocation("register");
-									console.error(ret.error);
-								} else {
-									setSomethingError("");
-									setErrorLocation("");
-									setEmail("");
-									setName("");
-									setPassword("");
-									setDisableSubmit(false);
-									setUsers((users) => [...users, ret.data]);
-								}
-							})
-
+						onChange={() => {
+							const em = email_input?.current?.value as string ?? "";
+							if (!U.check_email(em)) {
+								setSomethingError("Invalid email.");
+								setErrorLocation("register");
+							} else {
+								setSomethingError("");
+								setErrorLocation("");
+							}
 						}}
+						margin="normal"
+					/>
+					<TextField
+						label="Password"
+						variant="outlined"
+						required fullWidth
+						type='password'
+						inputRef={password_input}
+
+						onChange={() => {
+							const em = password_input?.current?.value as string ?? "";
+
+							if (!U.check_password(em)) {
+								setSomethingError("Invalid password.");
+								setErrorLocation("register");
+							} else {
+								setSomethingError("");
+								setErrorLocation("");
+							}
+						}}
+						margin="normal"
+					/>
+
+					{error_location == "register" && something_error.length > 0 ? <Alert sx={{ marginBottom: 1, marginTop: 1 }} severity="error">{something_error}</Alert> : <></>}
+					<Button sx={{ width: "100%", marginTop: 2, marginBottom: 10 }} variant="contained" onClick={() => {
+
+						U.post('api/v1/user/register', {
+							email: email_input?.current?.value,
+							password: password_input?.current?.value,
+							name: name_input?.current?.value
+						}).then((ret: any) => {
+							if (ret.error) {
+								setSomethingError(ret.error);
+								setErrorLocation("register");
+								console.error(ret.error);
+							} else {
+								setSomethingError("");
+								setErrorLocation("");
+								setEmail("");
+								setName("");
+								setPassword("");
+								setDisableSubmit(false);
+								setUsers((users) => [...users, ret.data]);
+							}
+						})
+
+					}}
 						color="primary" disabled={disable_submit}>
-							Register
-						</Button>
+						Register
+					</Button>
 
-					</CardContent>
-				</Card>
+				</CardContent>
+			</Card>
 
 
-				<ConfirmDialog open={showConfirmDialog} setOpen={setConfirmDialogVisibility} onSubmit={(flag: boolean) => {
+			<ConfirmDialog open={showConfirmDialog} setOpen={setConfirmDialogVisibility} onSubmit={(flag: boolean) => {
 				if (flag) {
 					setSomethingError("");
 					setErrorLocation("");

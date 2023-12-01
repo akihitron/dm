@@ -14,6 +14,7 @@
 		"new_password":"新しいパスワード",
 		"password": "パスワード",
 		"confirm_password": "確認",
+		"old_password": "古いパスワード",
 		"language": "言語",
 		"messages": "メッセージ",
 		"notifications": "通知",

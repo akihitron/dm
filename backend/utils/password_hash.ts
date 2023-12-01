@@ -1,8 +1,8 @@
 import crypto from 'crypto';
 import readline from 'readline';
 
-function hashPassword(password: string, salt: string) {
-    const hash = crypto.createHmac('sha3-256', salt);
+function hashPassword(password: string, salt: string, algo: string = 'sha3-256') {
+    const hash = crypto.createHmac(algo, salt);
     hash.update(password);
     const value = hash.digest('hex');
     return value;
@@ -24,8 +24,8 @@ function create_password_hash_and_salt() {
     let password = '';
 
     rl.question('Password: ', () => {
-        const salt = generateSalt();
-        const hashedPassword = hashPassword(password, salt);
+        const salt = generateSalt(64);
+        const hashedPassword = hashPassword(password, salt, 'sha3-256');
 
         console.log('\n  Salt:', salt);
         console.log('Hashed:', hashedPassword);

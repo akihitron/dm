@@ -42,7 +42,7 @@ export function GenerateUUID() {
 
 
 export function HashPassword(password:string, salt:string, algo:string = 'sha3-256') {
-    const hash = crypto.createHmac('sha3-256', salt);
+    const hash = crypto.createHmac(algo, salt);
     hash.update(password);
     const value = hash.digest('hex');
     return value;
@@ -63,7 +63,7 @@ export function RejectNotLoggedIn(req: Request, res: Response, next: NextFunctio
 
 export function RejectAPIKeyLoggedIn(req: Request, res: Response, next: NextFunction) {
     const session = req.session as any;
-    if (session.user.api_key_login) return res.json({ error: "Permission denied." });
+    if (session.user.is_api_key_session) return res.json({ error: "Permission denied." });
     next();
 };
 

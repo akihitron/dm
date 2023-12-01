@@ -162,6 +162,13 @@ const columns: GridColDef[] = [
 	},
 ];
 
+const initialSortModel = [
+	{
+		field: 'created_at',
+		sort: 'asc',
+	},
+];
+
 const RestrictedNameChars = /^[a-zA-Z0-9_-]+$/;
 function containsInvalidChars(input: string) {
 	return !RestrictedNameChars.test(input);
@@ -335,7 +342,7 @@ export default function InstancesGrid(prop: any) {
 	const [app_port_list, setAppPortList] = useState<Array<string>>([]);
 	const [instance_name, _setInstanceName] = useState(TEMPLATE_NAME[Math.floor(Math.random() * 1000) % TEMPLATE_NAME.length]);
 	const setInstanceName = (name: string) => {
-		if (name.length <= 2 || instance_list.filter((u: any) => u.name == name).length > 0 || (name.match(/^[a-z0-9_-]+$/)==null)) {
+		if (name.length <= 2 || instance_list.filter((u: any) => u.name == name).length > 0 || (name.match(/^[a-z0-9_-]+$/) == null)) {
 			setErrorMessageOfInstanceName("Invalid name.");
 		} else {
 			setErrorMessageOfInstanceName("");
@@ -343,14 +350,14 @@ export default function InstancesGrid(prop: any) {
 		_setInstanceName(name);
 	}
 	const updateSubmitButtonForLaunch = () => {
-		if (instance_name.length <= 2 || instance_list.filter((u: any) => u.name == instance_name).length > 0 || (use_ssh&&ssh_port==-1) || image_list.filter((u: any) => u.id == image_id).length == 0|| (instance_name.match(/^[a-z0-9_-]+$/)==null)) {
+		if (instance_name.length <= 2 || instance_list.filter((u: any) => u.name == instance_name).length > 0 || (use_ssh && ssh_port == -1) || image_list.filter((u: any) => u.id == image_id).length == 0 || (instance_name.match(/^[a-z0-9_-]+$/) == null)) {
 			if (disable_submit == false) setDisableSubmit(true);
 		} else {
 			if (disable_submit == true) setDisableSubmit(false);
 		}
 	}
 	updateSubmitButtonForLaunch();
-	
+
 	const [accelerator, setAccelerator] = useState("cpu");
 
 	const [buttonName, setButtonName] = useState("");
@@ -486,6 +493,9 @@ export default function InstancesGrid(prop: any) {
 				rows={instance_list}
 				columns={columns}
 				initialState={{
+					sorting: {
+						sortModel: [{ field: 'created_at', sort: 'desc' }],
+					  },
 					pagination: {
 						paginationModel: {
 							pageSize: 100,
@@ -542,9 +552,9 @@ export default function InstancesGrid(prop: any) {
 					const row = params.row;
 					const s_class = row.selected_as_single ? 'rows-selected' : '';
 					if (row.managed_sym == "Y") {
-						return ['rows-managed',s_class].filter((s:string)=>s.length>0).join(" ");
+						return ['rows-managed', s_class].filter((s: string) => s.length > 0).join(" ");
 					}
-					return ['rows-unmanaged',s_class].filter((s:string)=>s.length>0).join(" ");
+					return ['rows-unmanaged', s_class].filter((s: string) => s.length > 0).join(" ");
 				}}
 
 				onRowSelectionModelChange={(selectedRows: any) => {

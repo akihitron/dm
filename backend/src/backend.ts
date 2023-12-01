@@ -3,6 +3,7 @@ import path from "path";
 import express, { Express, Request, Response } from 'express';
 import session from "express-session";
 import morgan from "morgan";
+import ws from "ws";
 import showdown from "showdown";
 import configure from "./setup";
 import { createStream } from 'rotating-file-stream';
@@ -15,6 +16,7 @@ import SSHKeyAPI from "./rest/ssh_key";
 import UserAPI from "./rest/user";
 import { PrismaClient } from "@prisma/client";
 import logger from "./logger";
+
 
 const APP_NAME = "dmb";
 const APP_VERSION = "0.8.0";
