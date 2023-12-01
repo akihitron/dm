@@ -482,7 +482,6 @@ export default function InstancesGrid(prop: any) {
 			<h1>Instances</h1>
 
 			<DataGrid
-				sx={{ maxHeight: 600, minHeight: 200  }}
 
 				rows={instance_list}
 				columns={columns}
@@ -519,12 +518,20 @@ export default function InstancesGrid(prop: any) {
 					} else {
 						setSelectedInstance(null);
 					}
-
+					for (const instance of instance_list) {
+						instance.selected_as_single = false;
+					}
+					event.row.selected_as_single = true;
 				}}
 
 				sx={{
+					maxHeight: 600, minHeight: 200,
+
 					'& .rows-managed': {
-						background: '#77777722 !important'
+						// background: '#77777722 !important'
+					},
+					'& .rows-selected': {
+						background: '#3300FF22 !important'
 					},
 					'& .rows-unmanaged': {
 						opacity: 0.25
@@ -533,10 +540,11 @@ export default function InstancesGrid(prop: any) {
 				}}
 				getRowClassName={(params: any) => {
 					const row = params.row;
+					const s_class = row.selected_as_single ? 'rows-selected' : '';
 					if (row.managed_sym == "Y") {
-						return 'rows-managed'
+						return ['rows-managed',s_class].filter((s:string)=>s.length>0).join(" ");
 					}
-					return 'rows-unmanaged'
+					return ['rows-unmanaged',s_class].filter((s:string)=>s.length>0).join(" ");
 				}}
 
 				onRowSelectionModelChange={(selectedRows: any) => {

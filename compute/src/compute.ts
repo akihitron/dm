@@ -498,6 +498,9 @@ class ComputeNode {
         if (this.timers.cpu) clearInterval(this.timers.cpu); this.timers.cpu = setInterval(() => { this.update_cpu_usage_dynamic_info(config) }, 1000 * 60 * 2);
         if (this.timers.memory) clearInterval(this.timers.memory); this.timers.memory = setInterval(() => { this.update_memory_usage_dynamic_info(config) }, 1000 * 60 * 2);
         if (this.timers.storage) clearInterval(this.timers.storage); this.timers.storage = setInterval(() => { this.update_storage_usage_dynamic_info(config) }, 1000 * 60 * 2);
+        if (this.timers.image_and_containers) clearInterval(this.timers.image_and_containers); this.timers.image_and_containers = setInterval(() => { this.update_instance_and_image_status(config) }, 1000 * 60 * 2);
+        
+        
 
 
         const loop = async (response: Array<any> = []) => {
@@ -613,11 +616,15 @@ class ComputeNode {
             compute_node.update_storage_usage_dynamic_info(config),
         ]);
         logger.log(`Update instances.`);
+        await this.update_instance_and_image_status(config);
+    }
+
+    async update_instance_and_image_status(config: any) {
+        const compute_node = this;
         await Promise.all([
             compute_node.update_images(config),
             compute_node.update_instances(config),
         ]);
-
     }
 
     async start() {
