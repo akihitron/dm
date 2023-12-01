@@ -117,7 +117,7 @@ export default async (context: MainContext) => {
         const user_id = session.user.user_id;
 
         if (containsInvalidChars(instance_name)) return res.json({ error: "Invalid instance name. [YX6UazOrzp]" });
-        if (instance_name.length < 2) return res.json({ error: "Instance name is too short. [uCFggvuXSZ]" });
+        if (instance_name.length <= 2) return res.json({ error: "Instance name is too short. [uCFggvuXSZ]" });
         if (instance_name.length > 32) return res.json({ error: "Instance name is too long. [1lYQNzrN8B]" });
         let instance;
         let should_delete = false;
