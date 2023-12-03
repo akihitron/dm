@@ -16,6 +16,7 @@ import SSHKeyAPI from "./rest/ssh_key";
 import UserAPI from "./rest/user";
 import { PrismaClient } from "@prisma/client";
 import logger from "./logger";
+import cors from "cors";
 
 
 const APP_NAME = "dmb";
@@ -95,7 +96,7 @@ async function main(params: AppParams) {
 
     // CORS
     if (false) {
-        // app.use(cors()); // Cross Origin Resource Sharing
+        app.use(cors()); // Cross Origin Resource Sharing
         // app.use(cors({
         //     origin: 'http://localhost:8080',
         //     credentials: true,

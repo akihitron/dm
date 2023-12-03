@@ -10,7 +10,7 @@ import { rateLimit } from 'express-rate-limit'
 import { NextFunction } from 'express';
 
 // Database drivers
-import mongoose from 'mongoose';
+// import mongoose from 'mongoose';
 import MongoStore from 'connect-mongo';
 import { PrismaClient } from '@prisma/client';
 
@@ -28,17 +28,17 @@ const IPv4_CheckURL = "https://api.ipify.org";
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 // MongoDB driver
-class MongoDBDriver {
-  async init(driver_config: any) {
-    const end_point = driver_config.end_point;
-    // Test Connection
-    logger.log("Connecting...");
-    await mongoose.connect(end_point);
-    logger.success("Mongoose: OK");
+// class MongoDBDriver {
+//   async init(driver_config: any) {
+//     const end_point = driver_config.end_point;
+//     // Test Connection
+//     logger.log("Connecting...");
+//     await mongoose.connect(end_point);
+//     logger.success("Mongoose: OK");
 
-    return mongoose;
-  }
-}
+//     return mongoose;
+//   }
+// }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 // Redis driver
@@ -223,11 +223,12 @@ async function configure(params: AppParams) {
             process.exit(1);
           }
           if (driver_name == "mongodb") {
-            const driver = new MongoDBDriver();
-            db = driver.init(driver_config);
-            model_init_func = async function (db: any) {
-              // context.model = new Model(context);
-            }
+            throw new Error("Removed MongoDB driver.");
+            // const driver = new MongoDBDriver();
+            // db = driver.init(driver_config);
+            // model_init_func = async function (db: any) {
+            //   // context.model = new Model(context);
+            // }
           } else if (driver_name == "prisma" || driver_name == "mysql" || driver_name == "postgres" || driver_name == "postgresql" || driver_name == "sqlite" || driver_name == "sqlite3" || driver_name == "sqlserver") {
             const driver = new PrismaDriver();
             db = await driver.init(driver_name, driver_config);

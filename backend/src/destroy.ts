@@ -1,7 +1,6 @@
 import configure from "./setup";
 import logger from "./logger";
 import { AppParams, MainContext } from "./global";
-const MongoClient = require("mongodb").MongoClient;
 const _package = require('../package.json');
 
 const params = new AppParams();

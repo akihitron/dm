@@ -1,2 +1,0 @@
-cd compute
-npm start

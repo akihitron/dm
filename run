@@ -1,3 +1,63 @@
+#!/bin/bash
+
+if [ $# -eq 0 ]; then
+    echo "エラー: 引数が必要です。"
+    exit 1
+fi
+
+arg_f=false
+arg_b=false
+arg_c=false
+arg_g=false
+arg_u=false
+arg_all=false
+
+while [ "$#" -gt 0 ]; do
+  case "$1" in
+    -f)
+      arg_f=true
+      ;;
+    -b)
+      arg_b=true
+      ;;
+    -c)
+      arg_c=true
+      ;;
+    -g)
+      arg_g=true
+      ;;
+    -u)
+      arg_u=true
+      ;;
+    -all)
+      arg_all=true
+      ;;
+    *)
+      echo "Invalid arg: $1"
+      exit 1
+      ;;
+  esac
+  shift
+done
+
+if $arg_f; then
+cd frontend
+npm start
+#npm run start2
+fi
+
+if $arg_b; then
+cd backend
+npm run debug
+fi
+if $arg_c; then
+cd compute
+npm start
+fi
+if $arg_g; then
+cd backend && npm run gui
+fi
+if $arg_u; then
 echo "================ Clear global packages ================"
 npm -g uninstall npm-upgrade
 npm -g uninstall nodemon
@@ -26,3 +86,7 @@ cd ..
 
 echo "================ Compute node ================"
 cd compute && rm -rf node_modules && npm-upgrade -p && npm install && npm dedup && npm audit
+
+fi
+
+
