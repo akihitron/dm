@@ -718,10 +718,79 @@ async function main() {
 
 if (require.main === module) {
 
-    if (setup) {
-        ConfigureServer();
-    } else {
-        main();
+
+
+const pty = require('node-pty');
+const Docker = require('dockerode');
+
+// Dockerクライアントの設定
+const docker = new Docker(); // Dockerソケットのパスを適切に設定
+
+// 新しいPTYを作成
+const term = pty.spawn('bash', [], {
+  name: 'xterm-color',
+  cols: 80,
+  rows: 30,
+  cwd: '/', // Dockerコンテナ内の作業ディレクトリを指定
+  env: process.env,
+});
+
+// PTYからのデータを受け取り、標準出力に書き込みます
+term.on('data', (data:any) => {
+  process.stdout.write(data);
+});
+
+// Dockerコンテナ内のシェルに接続
+docker.getContainer('gorilla').exec(
+  {
+    Cmd: ['/bin/bash', 'ls /'],
+    AttachStdin: true,
+    AttachStdout: true,
+    AttachStderr: true,
+    Tty: true,
+  },
+  (err:any, exec:any) => {
+    if (err) {
+      console.error(err);
+      process.exit(1);
     }
+
+    // PTYからのデータをDockerコンテナ内のシェルに送信
+    term.on('data', (data:any) => {
+      exec.start((err:any, stream:any) => {
+        if (err) {
+          console.error(err);
+          process.exit(1);
+        }
+        console.log(stream);
+        debugger;
+        stream.write(data);
+      });
+    });
+
+    // Dockerコンテナ内のシェルからのデータをPTYに送信
+    exec.start({ hijack: true, stdin: true }, (err:any, stream:any) => {
+        if (err) {
+        console.error(err);
+        process.exit(1);
+      }
+
+      stream.on('data', (chunk:any) => {
+        term.write(chunk);
+      });
+
+      stream.on('end', () => {
+        // コンテナからのデータストリームが終了した場合の処理
+        term.kill();
+      });
+    });
+  }
+);
+
+    // if (setup) {
+    //     ConfigureServer();
+    // } else {
+    //     main();
+    // }
 }
 

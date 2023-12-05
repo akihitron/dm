@@ -41,6 +41,7 @@
     "express": "^4.18.2",
     "isomorphic-fetch": "^3.0.0",
     "node-df": "^0.1.4",
+    "node-pty": "^1.0.0",
     "os-utils": "^0.0.14",
     "xml2js": "^0.6.2",
     "yargs": "^17.7.2"

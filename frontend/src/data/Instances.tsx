@@ -13,46 +13,18 @@ import Typography from '@mui/material/Typography';
 // import TextBoxWithCopyButton from '../libs/TextBoxWithCopyButton';
 
 import { Terminal } from 'xterm';
-import { FitAddon } from 'xterm-addon-fit';
+import { FitAddon } from '@xterm/addon-fit';
+// import {SearchAddon} from '@xterm/addon-search';
+import {WebLinksAddon} from '@xterm/addon-web-links';
+// import { Unicode11Addon } from '@xterm/addon-unicode11';
 
-let terminal = new Terminal({
-	fontFamily: "courier-new, courier, monospace",
-	// fontFamily:"courier-new, courier, monospace",
-	fontWeight: undefined,
-	fontSize: 14
-});
-// let terminal = new Terminal({ fontFamily:"'Monaco','Menlo','Ubuntu Mono','Consolas','source-code-pro',monospace",fontSize:14});
 
 const BASE_URL = import.meta.env.BASE_URL;
 const ORIGIN_URL_OBJ = new URL(window.location.origin);
 const WS_PROTOCOL = ORIGIN_URL_OBJ.protocol == "https:" ? "wss:" : "ws:";
 const WS_URL = `${WS_PROTOCOL}//${ORIGIN_URL_OBJ.host}${BASE_URL}api/ws/`;
 console.warn(WS_URL);
-const socket = new WebSocket(WS_URL);
 
-export const TerminalComponent = () => {
-	const [term, setTerm] = useState(terminal);
-	useEffect(() => {
-		const dom = document.getElementById('terminal');
-		if (!dom) return;
-		if (dom.children.length > 0) return;
-		const fitAddon = new FitAddon();
-		terminal.loadAddon(fitAddon);
-		term.open(dom);
-		fitAddon.fit();
-		term.write(`AMD5950X-4090:dm$ ls
-a.sh  backend  compute   f         g        m          tmp   u
-b     c        debug.sh  frontend  kill.sh  README.md  t.sh  w.sh
-AMD5950X-4090:dm$ cd backend/
-AMD5950X-4090:backend$ ls
-jest.config.js  package-lock.json  README.template.md  utils
-nodemon.json    pm2config.json     src
-package.json    prisma             tsconfig.json
-AMD5950X-4090:backend$`.replace(/\n/g, "\r\n"));
-	})
-	//   term.write('Hello from \x1B[1;3;31mxterm.js\x1B[0m $ ');
-	return <div id="terminal" style={{ fontFamily: "unset" }} />
-}
 
 
 const TEMPLATE_NAME = [
@@ -302,6 +274,74 @@ function QuickSearchToolbar() {
 }
 
 
+const fitAddon = new FitAddon();
+const webLinksAddon = new WebLinksAddon();
+// const searchAddon = new SearchAddon();
+// const unicode11Addon = new Unicode11Addon();
+
+window.addEventListener('resize', () => {
+	fitAddon.fit();
+});
+
+function TerminalComponent() {
+	const [socket, setSocket] = useState<WebSocket | null>(null);
+	const [term, setTerm] = useState(new Terminal({
+		fontFamily: "courier-new, courier, monospace",
+		fontWeight: undefined,
+		fontSize: 14,
+		allowProposedApi: true
+	}));
+	const ref = React.useRef<HTMLDivElement>();
+	useEffect(() => {
+		const dom = ref.current;
+		term.onData((data) => {
+			if (socket && socket.readyState === WebSocket.OPEN) {
+				socket.send(JSON.stringify({event:"term", data:data}));
+			}
+		});
+		term.onResize((size) => {
+			if (socket && socket.readyState === WebSocket.OPEN) {
+				socket.send(JSON.stringify({event:"resize", cols:size.cols, rows:size.rows}));
+			}
+		});
+
+		if (!dom) return;
+		if (dom.children.length > 0) return;
+		term.loadAddon(fitAddon);
+		term.loadAddon(webLinksAddon);
+		// term.loadAddon(searchAddon);
+		// term.loadAddon(unicode11Addon);
+		term.open(dom);
+
+		if (socket == null) {
+			const _socket = new WebSocket(WS_URL);
+			_socket.binaryType = "arraybuffer";
+			setSocket(_socket);
+			_socket.onopen = () => {
+				console.info('WebSocket connected');
+				window.dispatchEvent(new Event('resize'));
+			};
+
+			_socket.onmessage = (event) => {
+				const ev = JSON.parse(event.data);
+				if (ev.event == "term") {
+					term.write(ev.data);
+				}
+			};
+
+			_socket.onclose = () => {
+				console.info('WebSocket closed');
+				setSocket(null);
+			};
+		}		
+	}, [socket])
+
+	
+
+	return (<Box sx={{padding:"10px", backgroundColor:"black"}} ref={ref} />);
+}
+
+
 export default function InstancesGrid(prop: any) {
 	const onUpdated = prop.onUpdated;
 
@@ -473,7 +513,7 @@ export default function InstancesGrid(prop: any) {
 					memory_h: u.memory == -1 ? "host" : U.human_file_size_M(u.memory),
 					storage_h: u.storage == -1 ? "host" : `${U.human_file_size_M(u.storage)}/${U.human_file_size_M(u.total_storage)}`,
 				}));
-				console.log(data);
+				console.log("Instances:",data);
 				setInstanceList(data);
 			} else {
 				console.error(ret.error);
@@ -486,6 +526,8 @@ export default function InstancesGrid(prop: any) {
 		<Box sx={{ width: '100%', marginBottom: 10 }}>
 			{something_error.length > 0 ? <Alert sx={{ marginBottom: 1 }} severity="error">{something_error}</Alert> : <></>}
 
+			{/* <TerminalComponent /> */}
+
 			<h1>Instances</h1>
 
 			<DataGrid
@@ -495,7 +537,7 @@ export default function InstancesGrid(prop: any) {
 				initialState={{
 					sorting: {
 						sortModel: [{ field: 'created_at', sort: 'desc' }],
-					  },
+					},
 					pagination: {
 						paginationModel: {
 							pageSize: 100,
@@ -592,9 +634,9 @@ export default function InstancesGrid(prop: any) {
 			<Box sx={{ width: '100%', marginTop: 2, boxShadow: "0px 0px 2px black" }}>
 				<Tabs onChange={(event: React.SyntheticEvent, newValue: number) => changeTab(newValue)} value={tab}>
 					<Tab label="Launch" />
-					<Tab label="SSH" />
-					<Tab label="Status" />
-					<Tab label="Terminal" />
+					<Tab label="SSH" disabled={selected_instance==null} />
+					<Tab label="Status" disabled={selected_instance==null} />
+					<Tab label="Terminal" disabled={selected_instance==null} />
 				</Tabs>
 			</Box>
 
@@ -969,7 +1011,7 @@ export default function InstancesGrid(prop: any) {
 
 			{tab == 3 ? <>
 				<Box sx={{ boxShadow: "0px 0px 2px black" }}>
-					<TerminalComponent />
+					{/* <TerminalComponent /> */}
 					{/* <Card>
 						<CardContent>
 							<Paper sx={{

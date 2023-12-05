@@ -29,16 +29,17 @@ export default defineConfig({
         changeOrigin: true,
         secure: false,
         rewrite: (path) => path.replace(/^\/api/, ''),
-        xfwd: true
-      },
-      '/api/ws/': {
+        xfwd: true,
         ws: true,
-        target: 'http://localhost:3100',
-        changeOrigin: true,
-        secure: false,
-        rewrite: (path) => path.replace(/^\/api\/ws/, ''),
-        xfwd: true
       },
+      // '/api/ws/': {
+      //   ws: true,
+      //   target: 'http://localhost:3050',
+      //   changeOrigin: true,
+      //   secure: false,
+      //   rewrite: (path) => path.replace(/^\/api\/ws/, ''),
+      //   xfwd: true
+      // },
     }
   }
 })

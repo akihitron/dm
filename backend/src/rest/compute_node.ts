@@ -18,7 +18,7 @@ export default async (context: MainContext) => {
             for (const node of nodes) {
                 const diff = new Date().getTime() - node.updated_at.getTime();
                 if (diff > 60 * 10000 && node.status == "ACTIVATED") {
-                    logger.warn("Node timeout:", node.id, node.name, node.ipv4, node.ipv6, node.updated_at);
+                    logger.warn("Node timeout:", node.id, node.name, node.ipv4, node.ipv6, node.updated_at, "The status will be changed as DEAD.");
                     await ORM.compute_node.update({ where: { id: node.id }, data: { status: "DEAD" } });
                     await ORM.instance.updateMany({ where: { node_id: node.id }, data: { status: "DEAD" } });
                 }

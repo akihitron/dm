@@ -1,7 +1,7 @@
 #!/bin/bash
 
 if [ $# -eq 0 ]; then
-    echo "エラー: 引数が必要です。"
+    echo "Requried at least one arg: f b c g u all"
     exit 1
 fi
 
@@ -14,22 +14,22 @@ arg_all=false
 
 while [ "$#" -gt 0 ]; do
   case "$1" in
-    -f)
+    f)
       arg_f=true
       ;;
-    -b)
+    b)
       arg_b=true
       ;;
-    -c)
+    c)
       arg_c=true
       ;;
-    -g)
+    g)
       arg_g=true
       ;;
-    -u)
+    u)
       arg_u=true
       ;;
-    -all)
+    all)
       arg_all=true
       ;;
     *)
@@ -90,3 +90,14 @@ cd compute && rm -rf node_modules && npm-upgrade -p && npm install && npm dedup 
 fi
 
 
+if $arg_all; then
+cd frontend
+npm start &
+cd ..
+cd backend
+npm run debug &
+sleep 2
+cd ..
+cd compute
+npm start
+fi
