@@ -1,10 +1,18 @@
 # DM project
 
+<br>
+
 AIIT master's assignment cloud infrastructure special subject.
+
+<br>
 
 Since this repository is for submission, a separate repository for maintenance will be forked. The fork destination will be linked to my personal account.
 
+<br>
+
 Fork: https://github.com/akihitron/dm
+
+<br>
 
 ## Requirements and restrictions
 
@@ -15,6 +23,8 @@ Fork: https://github.com/akihitron/dm
 - Port map management
 - Don't use Docker's easy features.
 
+<br>
+<br>
 
 ## Concept
 
