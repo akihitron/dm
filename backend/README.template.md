@@ -1,5 +1,21 @@
 # DM project
 
+AIIT master's assignment cloud infrastructure special subject.
+
+Since this repository is for submission, a separate repository for maintenance will be forked. The fork destination will be linked to my personal account.
+
+Fork: https://github.com/akihitron/dm
+
+## Requirements and restrictions
+
+- Instance management
+- Image management
+- SSH key management
+- Compute node management
+- Port map management
+- Don't use Docker's easy features.
+
+
 ## Concept
 
 The basic concept is to easily manage front servers, backend servers, and heterogeneous accelerator compute nodes for distributed on-premises servers and machine learning nodes in a global network, internal management, and access management.
