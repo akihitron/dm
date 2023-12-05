@@ -1,1 +1,874 @@
-test
+<!DOCTYPE html>
+        <html>
+            <title>Rest API Docs</title>
+            <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+            <style>
+
+/* // https://github.com/jasonm23/markdown-css-themes */
+
+img {
+	max-width: 100%;
+}
+
+table {
+	width: 100%;
+	border-collapse: collapse;
+}
+
+th {
+	color: gray;
+	background-color: rgba(0, 0, 0, 0.3);
+}
+
+table,
+th,
+td {
+	padding: 5px;
+	border: 1px solid rgba(0, 0, 0, 0.3);
+}
+
+tr:nth-child(even) {
+	background-color: rgba(0, 0, 0, 0.3);
+}
+
+
+html {
+	font-size: 62.5%;
+}
+
+html,
+body {
+	height: 100%;
+}
+
+body {
+	font-family: Helvetica, Arial, sans-serif;
+	font-size: 150%;
+	line-height: 1.3;
+	color: #f6e6cc;
+	width: 700px;
+	margin: auto;
+	background: #27221a;
+	position: relative;
+	padding: 0 30px;
+}
+
+p,
+ul,
+ol,
+dl,
+table,
+pre {
+	margin-bottom: 1em;
+}
+
+ul {
+	margin-left: 20px;
+}
+
+a {
+	text-decoration: none;
+	cursor: pointer;
+	color: #ba832c;
+	font-weight: bold;
+}
+
+a:focus {
+	outline: 1px dotted;
+}
+
+a:visited {}
+
+a:hover,
+a:focus {
+	color: #d3a459;
+	text-decoration: none;
+}
+
+a *,
+button * {
+	cursor: pointer;
+}
+
+hr {
+	display: none;
+}
+
+small {
+	font-size: 90%;
+}
+
+input,
+select,
+button,
+textarea,
+option {
+	font-family: Arial, "Lucida Grande", "Lucida Sans Unicode", Arial, Verdana, sans-serif;
+	font-size: 100%;
+}
+
+button,
+label,
+select,
+option,
+input[type=submit] {
+	cursor: pointer;
+}
+
+.group:after {
+	content: ".";
+	display: block;
+	height: 0;
+	clear: both;
+	visibility: hidden;
+}
+
+.group {
+	display: inline-block;
+}
+
+/* Hides from IE-mac \*/
+* html .group {
+	height: 1%;
+}
+
+.group {
+	display: block;
+}
+
+/* End hide from IE-mac */
+sup {
+	font-size: 80%;
+	line-height: 1;
+	vertical-align: super;
+}
+
+button::-moz-focus-inner {
+	border: 0;
+	padding: 1px;
+}
+
+span.amp {
+	font-family: Baskerville, "Goudy Old Style", "Palatino", "Book Antiqua", serif;
+	font-weight: normal;
+	font-style: italic;
+	font-size: 1.2em;
+	line-height: 0.8;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+	line-height: 1.1;
+	font-family: Baskerville, "Goudy Old Style", "Palatino", "Book Antiqua", serif;
+}
+
+h2 {
+	font-size: 22pt;
+}
+
+h3 {
+	font-size: 20pt;
+}
+
+h4 {
+	font-size: 18pt;
+}
+
+h5 {
+	font-size: 16pt;
+}
+
+h6 {
+	font-size: 14pt;
+}
+
+::selection {
+	background: #745626;
+}
+
+::-moz-selection {
+	background: #745626;
+}
+
+h1 {
+	font-size: 420%;
+	margin: 0 0 0.1em;
+	font-family: Baskerville, "Goudy Old Style", "Palatino", "Book Antiqua", serif;
+}
+
+h1 a,
+h1 a:hover {
+	color: #d7af72;
+	font-weight: normal;
+	text-decoration: none;
+}
+
+pre {
+	background: rgba(0, 0, 0, 0.3);
+	color: #fff;
+	padding: 8px 10px;
+	border-radius: 0.4em;
+	-moz-border-radius: 0.4em;
+	-webkit-border-radius: 0.4em;
+	overflow-x: hidden;
+}
+
+pre code {
+	font-size: 10pt;
+}
+
+.thumb {
+	float: left;
+	margin: 10px;
+}
+
+/* PrismJS 1.29.0
+https://prismjs.com/download.html#themes=prism-tomorrow&languages=clike+javascript+bash+json */
+code[class*=language-],pre[class*=language-]{color:#ccc;background:0 0;font-family:Consolas,Monaco,'Andale Mono','Ubuntu Mono',monospace;font-size:1em;text-align:left;white-space:pre;word-spacing:normal;word-break:normal;word-wrap:normal;line-height:1.5;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-hyphens:none;-moz-hyphens:none;-ms-hyphens:none;hyphens:none}pre[class*=language-]{padding:1em;margin:.5em 0;overflow:auto}:not(pre)>code[class*=language-],pre[class*=language-]{background:#2d2d2d}:not(pre)>code[class*=language-]{padding:.1em;border-radius:.3em;white-space:normal}.token.block-comment,.token.cdata,.token.comment,.token.doctype,.token.prolog{color:#999}.token.punctuation{color:#ccc}.token.attr-name,.token.deleted,.token.namespace,.token.tag{color:#e2777a}.token.function-name{color:#6196cc}.token.boolean,.token.function,.token.number{color:#f08d49}.token.class-name,.token.constant,.token.property,.token.symbol{color:#f8c555}.token.atrule,.token.builtin,.token.important,.token.keyword,.token.selector{color:#cc99cd}.token.attr-value,.token.char,.token.regex,.token.string,.token.variable{color:#7ec699}.token.entity,.token.operator,.token.url{color:#67cdcc}.token.bold,.token.important{font-weight:700}.token.italic{font-style:italic}.token.entity{cursor:help}.token.inserted{color:green}
+</style>
+<script>
+    /* PrismJS 1.29.0
+https://prismjs.com/download.html#themes=prism-dark&languages=clike+javascript+bash+json */
+var _self="undefined"!=typeof window?window:"undefined"!=typeof WorkerGlobalScope&&self instanceof WorkerGlobalScope?self:{},Prism=function(e){var n=/(?:^|\s)lang(?:uage)?-([\w-]+)(?=\s|$)/i,t=0,r={},a={manual:e.Prism&&e.Prism.manual,disableWorkerMessageHandler:e.Prism&&e.Prism.disableWorkerMessageHandler,util:{encode:function e(n){return n instanceof i?new i(n.type,e(n.content),n.alias):Array.isArray(n)?n.map(e):n.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/\u00a0/g," ")},type:function(e){return Object.prototype.toString.call(e).slice(8,-1)},objId:function(e){return e.__id||Object.defineProperty(e,"__id",{value:++t}),e.__id},clone:function e(n,t){var r,i;switch(t=t||{},a.util.type(n)){case"Object":if(i=a.util.objId(n),t[i])return t[i];for(var l in r={},t[i]=r,n)n.hasOwnProperty(l)&&(r[l]=e(n[l],t));return r;case"Array":return i=a.util.objId(n),t[i]?t[i]:(r=[],t[i]=r,n.forEach((function(n,a){r[a]=e(n,t)})),r);default:return n}},getLanguage:function(e){for(;e;){var t=n.exec(e.className);if(t)return t[1].toLowerCase();e=e.parentElement}return"none"},setLanguage:function(e,t){e.className=e.className.replace(RegExp(n,"gi"),""),e.classList.add("language-"+t)},currentScript:function(){if("undefined"==typeof document)return null;if("currentScript"in document)return document.currentScript;try{throw new Error}catch(r){var e=(/at [^(\r\n]*\((.*):[^:]+:[^:]+\)$/i.exec(r.stack)||[])[1];if(e){var n=document.getElementsByTagName("script");for(var t in n)if(n[t].src==e)return n[t]}return null}},isActive:function(e,n,t){for(var r="no-"+n;e;){var a=e.classList;if(a.contains(n))return!0;if(a.contains(r))return!1;e=e.parentElement}return!!t}},languages:{plain:r,plaintext:r,text:r,txt:r,extend:function(e,n){var t=a.util.clone(a.languages[e]);for(var r in n)t[r]=n[r];return t},insertBefore:function(e,n,t,r){var i=(r=r||a.languages)[e],l={};for(var o in i)if(i.hasOwnProperty(o)){if(o==n)for(var s in t)t.hasOwnProperty(s)&&(l[s]=t[s]);t.hasOwnProperty(o)||(l[o]=i[o])}var u=r[e];return r[e]=l,a.languages.DFS(a.languages,(function(n,t){t===u&&n!=e&&(this[n]=l)})),l},DFS:function e(n,t,r,i){i=i||{};var l=a.util.objId;for(var o in n)if(n.hasOwnProperty(o)){t.call(n,o,n[o],r||o);var s=n[o],u=a.util.type(s);"Object"!==u||i[l(s)]?"Array"!==u||i[l(s)]||(i[l(s)]=!0,e(s,t,o,i)):(i[l(s)]=!0,e(s,t,null,i))}}},plugins:{},highlightAll:function(e,n){a.highlightAllUnder(document,e,n)},highlightAllUnder:function(e,n,t){var r={callback:t,container:e,selector:'code[class*="language-"], [class*="language-"] code, code[class*="lang-"], [class*="lang-"] code'};a.hooks.run("before-highlightall",r),r.elements=Array.prototype.slice.apply(r.container.querySelectorAll(r.selector)),a.hooks.run("before-all-elements-highlight",r);for(var i,l=0;i=r.elements[l++];)a.highlightElement(i,!0===n,r.callback)},highlightElement:function(n,t,r){var i=a.util.getLanguage(n),l=a.languages[i];a.util.setLanguage(n,i);var o=n.parentElement;o&&"pre"===o.nodeName.toLowerCase()&&a.util.setLanguage(o,i);var s={element:n,language:i,grammar:l,code:n.textContent};function u(e){s.highlightedCode=e,a.hooks.run("before-insert",s),s.element.innerHTML=s.highlightedCode,a.hooks.run("after-highlight",s),a.hooks.run("complete",s),r&&r.call(s.element)}if(a.hooks.run("before-sanity-check",s),(o=s.element.parentElement)&&"pre"===o.nodeName.toLowerCase()&&!o.hasAttribute("tabindex")&&o.setAttribute("tabindex","0"),!s.code)return a.hooks.run("complete",s),void(r&&r.call(s.element));if(a.hooks.run("before-highlight",s),s.grammar)if(t&&e.Worker){var c=new Worker(a.filename);c.onmessage=function(e){u(e.data)},c.postMessage(JSON.stringify({language:s.language,code:s.code,immediateClose:!0}))}else u(a.highlight(s.code,s.grammar,s.language));else u(a.util.encode(s.code))},highlight:function(e,n,t){var r={code:e,grammar:n,language:t};if(a.hooks.run("before-tokenize",r),!r.grammar)throw new Error('The language "'+r.language+'" has no grammar.');return r.tokens=a.tokenize(r.code,r.grammar),a.hooks.run("after-tokenize",r),i.stringify(a.util.encode(r.tokens),r.language)},tokenize:function(e,n){var t=n.rest;if(t){for(var r in t)n[r]=t[r];delete n.rest}var a=new s;return u(a,a.head,e),o(e,a,n,a.head,0),function(e){for(var n=[],t=e.head.next;t!==e.tail;)n.push(t.value),t=t.next;return n}(a)},hooks:{all:{},add:function(e,n){var t=a.hooks.all;t[e]=t[e]||[],t[e].push(n)},run:function(e,n){var t=a.hooks.all[e];if(t&&t.length)for(var r,i=0;r=t[i++];)r(n)}},Token:i};function i(e,n,t,r){this.type=e,this.content=n,this.alias=t,this.length=0|(r||"").length}function l(e,n,t,r){e.lastIndex=n;var a=e.exec(t);if(a&&r&&a[1]){var i=a[1].length;a.index+=i,a[0]=a[0].slice(i)}return a}function o(e,n,t,r,s,g){for(var f in t)if(t.hasOwnProperty(f)&&t[f]){var h=t[f];h=Array.isArray(h)?h:[h];for(var d=0;d<h.length;++d){if(g&&g.cause==f+","+d)return;var v=h[d],p=v.inside,m=!!v.lookbehind,y=!!v.greedy,k=v.alias;if(y&&!v.pattern.global){var x=v.pattern.toString().match(/[imsuy]*$/)[0];v.pattern=RegExp(v.pattern.source,x+"g")}for(var b=v.pattern||v,w=r.next,A=s;w!==n.tail&&!(g&&A>=g.reach);A+=w.value.length,w=w.next){var E=w.value;if(n.length>e.length)return;if(!(E instanceof i)){var P,L=1;if(y){if(!(P=l(b,A,e,m))||P.index>=e.length)break;var S=P.index,O=P.index+P[0].length,j=A;for(j+=w.value.length;S>=j;)j+=(w=w.next).value.length;if(A=j-=w.value.length,w.value instanceof i)continue;for(var C=w;C!==n.tail&&(j<O||"string"==typeof C.value);C=C.next)L++,j+=C.value.length;L--,E=e.slice(A,j),P.index-=A}else if(!(P=l(b,0,E,m)))continue;S=P.index;var N=P[0],_=E.slice(0,S),M=E.slice(S+N.length),W=A+E.length;g&&W>g.reach&&(g.reach=W);var z=w.prev;if(_&&(z=u(n,z,_),A+=_.length),c(n,z,L),w=u(n,z,new i(f,p?a.tokenize(N,p):N,k,N)),M&&u(n,w,M),L>1){var I={cause:f+","+d,reach:W};o(e,n,t,w.prev,A,I),g&&I.reach>g.reach&&(g.reach=I.reach)}}}}}}function s(){var e={value:null,prev:null,next:null},n={value:null,prev:e,next:null};e.next=n,this.head=e,this.tail=n,this.length=0}function u(e,n,t){var r=n.next,a={value:t,prev:n,next:r};return n.next=a,r.prev=a,e.length++,a}function c(e,n,t){for(var r=n.next,a=0;a<t&&r!==e.tail;a++)r=r.next;n.next=r,r.prev=n,e.length-=a}if(e.Prism=a,i.stringify=function e(n,t){if("string"==typeof n)return n;if(Array.isArray(n)){var r="";return n.forEach((function(n){r+=e(n,t)})),r}var i={type:n.type,content:e(n.content,t),tag:"span",classes:["token",n.type],attributes:{},language:t},l=n.alias;l&&(Array.isArray(l)?Array.prototype.push.apply(i.classes,l):i.classes.push(l)),a.hooks.run("wrap",i);var o="";for(var s in i.attributes)o+=" "+s+'="'+(i.attributes[s]||"").replace(/"/g,"&quot;")+'"';return"<"+i.tag+' class="'+i.classes.join(" ")+'"'+o+">"+i.content+"</"+i.tag+">"},!e.document)return e.addEventListener?(a.disableWorkerMessageHandler||e.addEventListener("message",(function(n){var t=JSON.parse(n.data),r=t.language,i=t.code,l=t.immediateClose;e.postMessage(a.highlight(i,a.languages[r],r)),l&&e.close()}),!1),a):a;var g=a.util.currentScript();function f(){a.manual||a.highlightAll()}if(g&&(a.filename=g.src,g.hasAttribute("data-manual")&&(a.manual=!0)),!a.manual){var h=document.readyState;"loading"===h||"interactive"===h&&g&&g.defer?document.addEventListener("DOMContentLoaded",f):window.requestAnimationFrame?window.requestAnimationFrame(f):window.setTimeout(f,16)}return a}(_self);"undefined"!=typeof module&&module.exports&&(module.exports=Prism),"undefined"!=typeof global&&(global.Prism=Prism);
+Prism.languages.clike={comment:[{pattern:/(^|[^\\])\/\*[\s\S]*?(?:\*\/|$)/,lookbehind:!0,greedy:!0},{pattern:/(^|[^\\:])\/\/.*/,lookbehind:!0,greedy:!0}],string:{pattern:/(["'])(?:\\(?:\r\n|[\s\S])|(?!\1)[^\\\r\n])*\1/,greedy:!0},"class-name":{pattern:/(\b(?:class|extends|implements|instanceof|interface|new|trait)\s+|\bcatch\s+\()[\w.\\]+/i,lookbehind:!0,inside:{punctuation:/[.\\]/}},keyword:/\b(?:break|catch|continue|do|else|finally|for|function|if|in|instanceof|new|null|return|throw|try|while)\b/,boolean:/\b(?:false|true)\b/,function:/\b\w+(?=\()/,number:/\b0x[\da-f]+\b|(?:\b\d+(?:\.\d*)?|\B\.\d+)(?:e[+-]?\d+)?/i,operator:/[<>]=?|[!=]=?=?|--?|\+\+?|&&?|\|\|?|[?*/~^%]/,punctuation:/[{}[\];(),.:]/};
+Prism.languages.javascript=Prism.languages.extend("clike",{"class-name":[Prism.languages.clike["class-name"],{pattern:/(^|[^$\w\xA0-\uFFFF])(?!\s)[_$A-Z\xA0-\uFFFF](?:(?!\s)[$\w\xA0-\uFFFF])*(?=\.(?:constructor|prototype))/,lookbehind:!0}],keyword:[{pattern:/((?:^|\})\s*)catch\b/,lookbehind:!0},{pattern:/(^|[^.]|\.\.\.\s*)\b(?:as|assert(?=\s*\{)|async(?=\s*(?:function\b|\(|[$\w\xA0-\uFFFF]|$))|await|break|case|class|const|continue|debugger|default|delete|do|else|enum|export|extends|finally(?=\s*(?:\{|$))|for|from(?=\s*(?:['"]|$))|function|(?:get|set)(?=\s*(?:[#\[$\w\xA0-\uFFFF]|$))|if|implements|import|in|instanceof|interface|let|new|null|of|package|private|protected|public|return|static|super|switch|this|throw|try|typeof|undefined|var|void|while|with|yield)\b/,lookbehind:!0}],function:/#?(?!\s)[_$a-zA-Z\xA0-\uFFFF](?:(?!\s)[$\w\xA0-\uFFFF])*(?=\s*(?:\.\s*(?:apply|bind|call)\s*)?\()/,number:{pattern:RegExp("(^|[^\\w$])(?:NaN|Infinity|0[bB][01]+(?:_[01]+)*n?|0[oO][0-7]+(?:_[0-7]+)*n?|0[xX][\\dA-Fa-f]+(?:_[\\dA-Fa-f]+)*n?|\\d+(?:_\\d+)*n|(?:\\d+(?:_\\d+)*(?:\\.(?:\\d+(?:_\\d+)*)?)?|\\.\\d+(?:_\\d+)*)(?:[Ee][+-]?\\d+(?:_\\d+)*)?)(?![\\w$])"),lookbehind:!0},operator:/--|\+\+|\*\*=?|=>|&&=?|\|\|=?|[!=]==|<<=?|>>>?=?|[-+*/%&|^!=<>]=?|\.{3}|\?\?=?|\?\.?|[~:]/}),Prism.languages.javascript["class-name"][0].pattern=/(\b(?:class|extends|implements|instanceof|interface|new)\s+)[\w.\\]+/,Prism.languages.insertBefore("javascript","keyword",{regex:{pattern:RegExp("((?:^|[^$\\w\\xA0-\\uFFFF.\"'\\])\\s]|\\b(?:return|yield))\\s*)/(?:(?:\\[(?:[^\\]\\\\\r\n]|\\\\.)*\\]|\\\\.|[^/\\\\\\[\r\n])+/[dgimyus]{0,7}|(?:\\[(?:[^[\\]\\\\\r\n]|\\\\.|\\[(?:[^[\\]\\\\\r\n]|\\\\.|\\[(?:[^[\\]\\\\\r\n]|\\\\.)*\\])*\\])*\\]|\\\\.|[^/\\\\\\[\r\n])+/[dgimyus]{0,7}v[dgimyus]{0,7})(?=(?:\\s|/\\*(?:[^*]|\\*(?!/))*\\*/)*(?:$|[\r\n,.;:})\\]]|//))"),lookbehind:!0,greedy:!0,inside:{"regex-source":{pattern:/^(\/)[\s\S]+(?=\/[a-z]*$)/,lookbehind:!0,alias:"language-regex",inside:Prism.languages.regex},"regex-delimiter":/^\/|\/$/,"regex-flags":/^[a-z]+$/}},"function-variable":{pattern:/#?(?!\s)[_$a-zA-Z\xA0-\uFFFF](?:(?!\s)[$\w\xA0-\uFFFF])*(?=\s*[=:]\s*(?:async\s*)?(?:\bfunction\b|(?:\((?:[^()]|\([^()]*\))*\)|(?!\s)[_$a-zA-Z\xA0-\uFFFF](?:(?!\s)[$\w\xA0-\uFFFF])*)\s*=>))/,alias:"function"},parameter:[{pattern:/(function(?:\s+(?!\s)[_$a-zA-Z\xA0-\uFFFF](?:(?!\s)[$\w\xA0-\uFFFF])*)?\s*\(\s*)(?!\s)(?:[^()\s]|\s+(?![\s)])|\([^()]*\))+(?=\s*\))/,lookbehind:!0,inside:Prism.languages.javascript},{pattern:/(^|[^$\w\xA0-\uFFFF])(?!\s)[_$a-z\xA0-\uFFFF](?:(?!\s)[$\w\xA0-\uFFFF])*(?=\s*=>)/i,lookbehind:!0,inside:Prism.languages.javascript},{pattern:/(\(\s*)(?!\s)(?:[^()\s]|\s+(?![\s)])|\([^()]*\))+(?=\s*\)\s*=>)/,lookbehind:!0,inside:Prism.languages.javascript},{pattern:/((?:\b|\s|^)(?!(?:as|async|await|break|case|catch|class|const|continue|debugger|default|delete|do|else|enum|export|extends|finally|for|from|function|get|if|implements|import|in|instanceof|interface|let|new|null|of|package|private|protected|public|return|set|static|super|switch|this|throw|try|typeof|undefined|var|void|while|with|yield)(?![$\w\xA0-\uFFFF]))(?:(?!\s)[_$a-zA-Z\xA0-\uFFFF](?:(?!\s)[$\w\xA0-\uFFFF])*\s*)\(\s*|\]\s*\(\s*)(?!\s)(?:[^()\s]|\s+(?![\s)])|\([^()]*\))+(?=\s*\)\s*\{)/,lookbehind:!0,inside:Prism.languages.javascript}],constant:/\b[A-Z](?:[A-Z_]|\dx?)*\b/}),Prism.languages.insertBefore("javascript","string",{hashbang:{pattern:/^#!.*/,greedy:!0,alias:"comment"},"template-string":{pattern:/`(?:\\[\s\S]|\$\{(?:[^{}]|\{(?:[^{}]|\{[^}]*\})*\})+\}|(?!\$\{)[^\\`])*`/,greedy:!0,inside:{"template-punctuation":{pattern:/^`|`$/,alias:"string"},interpolation:{pattern:/((?:^|[^\\])(?:\\{2})*)\$\{(?:[^{}]|\{(?:[^{}]|\{[^}]*\})*\})+\}/,lookbehind:!0,inside:{"interpolation-punctuation":{pattern:/^\$\{|\}$/,alias:"punctuation"},rest:Prism.languages.javascript}},string:/[\s\S]+/}},"string-property":{pattern:/((?:^|[,{])[ \t]*)(["'])(?:\\(?:\r\n|[\s\S])|(?!\2)[^\\\r\n])*\2(?=\s*:)/m,lookbehind:!0,greedy:!0,alias:"property"}}),Prism.languages.insertBefore("javascript","operator",{"literal-property":{pattern:/((?:^|[,{])[ \t]*)(?!\s)[_$a-zA-Z\xA0-\uFFFF](?:(?!\s)[$\w\xA0-\uFFFF])*(?=\s*:)/m,lookbehind:!0,alias:"property"}}),Prism.languages.markup&&(Prism.languages.markup.tag.addInlined("script","javascript"),Prism.languages.markup.tag.addAttribute("on(?:abort|blur|change|click|composition(?:end|start|update)|dblclick|error|focus(?:in|out)?|key(?:down|up)|load|mouse(?:down|enter|leave|move|out|over|up)|reset|resize|scroll|select|slotchange|submit|unload|wheel)","javascript")),Prism.languages.js=Prism.languages.javascript;
+!function(e){var t="\\b(?:BASH|BASHOPTS|BASH_ALIASES|BASH_ARGC|BASH_ARGV|BASH_CMDS|BASH_COMPLETION_COMPAT_DIR|BASH_LINENO|BASH_REMATCH|BASH_SOURCE|BASH_VERSINFO|BASH_VERSION|COLORTERM|COLUMNS|COMP_WORDBREAKS|DBUS_SESSION_BUS_ADDRESS|DEFAULTS_PATH|DESKTOP_SESSION|DIRSTACK|DISPLAY|EUID|GDMSESSION|GDM_LANG|GNOME_KEYRING_CONTROL|GNOME_KEYRING_PID|GPG_AGENT_INFO|GROUPS|HISTCONTROL|HISTFILE|HISTFILESIZE|HISTSIZE|HOME|HOSTNAME|HOSTTYPE|IFS|INSTANCE|JOB|LANG|LANGUAGE|LC_ADDRESS|LC_ALL|LC_IDENTIFICATION|LC_MEASUREMENT|LC_MONETARY|LC_NAME|LC_NUMERIC|LC_PAPER|LC_TELEPHONE|LC_TIME|LESSCLOSE|LESSOPEN|LINES|LOGNAME|LS_COLORS|MACHTYPE|MAILCHECK|MANDATORY_PATH|NO_AT_BRIDGE|OLDPWD|OPTERR|OPTIND|ORBIT_SOCKETDIR|OSTYPE|PAPERSIZE|PATH|PIPESTATUS|PPID|PS1|PS2|PS3|PS4|PWD|RANDOM|REPLY|SECONDS|SELINUX_INIT|SESSION|SESSIONTYPE|SESSION_MANAGER|SHELL|SHELLOPTS|SHLVL|SSH_AUTH_SOCK|TERM|UID|UPSTART_EVENTS|UPSTART_INSTANCE|UPSTART_JOB|UPSTART_SESSION|USER|WINDOWID|XAUTHORITY|XDG_CONFIG_DIRS|XDG_CURRENT_DESKTOP|XDG_DATA_DIRS|XDG_GREETER_DATA_DIR|XDG_MENU_PREFIX|XDG_RUNTIME_DIR|XDG_SEAT|XDG_SEAT_PATH|XDG_SESSION_DESKTOP|XDG_SESSION_ID|XDG_SESSION_PATH|XDG_SESSION_TYPE|XDG_VTNR|XMODIFIERS)\\b",a={pattern:/(^(["']?)\w+\2)[ \t]+\S.*/,lookbehind:!0,alias:"punctuation",inside:null},n={bash:a,environment:{pattern:RegExp("\\$"+t),alias:"constant"},variable:[{pattern:/\$?\(\([\s\S]+?\)\)/,greedy:!0,inside:{variable:[{pattern:/(^\$\(\([\s\S]+)\)\)/,lookbehind:!0},/^\$\(\(/],number:/\b0x[\dA-Fa-f]+\b|(?:\b\d+(?:\.\d*)?|\B\.\d+)(?:[Ee]-?\d+)?/,operator:/--|\+\+|\*\*=?|<<=?|>>=?|&&|\|\||[=!+\-*/%<>^&|]=?|[?~:]/,punctuation:/\(\(?|\)\)?|,|;/}},{pattern:/\$\((?:\([^)]+\)|[^()])+\)|`[^`]+`/,greedy:!0,inside:{variable:/^\$\(|^`|\)$|`$/}},{pattern:/\$\{[^}]+\}/,greedy:!0,inside:{operator:/:[-=?+]?|[!\/]|##?|%%?|\^\^?|,,?/,punctuation:/[\[\]]/,environment:{pattern:RegExp("(\\{)"+t),lookbehind:!0,alias:"constant"}}},/\$(?:\w+|[#?*!@$])/],entity:/\\(?:[abceEfnrtv\\"]|O?[0-7]{1,3}|U[0-9a-fA-F]{8}|u[0-9a-fA-F]{4}|x[0-9a-fA-F]{1,2})/};e.languages.bash={shebang:{pattern:/^#!\s*\/.*/,alias:"important"},comment:{pattern:/(^|[^"{\\$])#.*/,lookbehind:!0},"function-name":[{pattern:/(\bfunction\s+)[\w-]+(?=(?:\s*\(?:\s*\))?\s*\{)/,lookbehind:!0,alias:"function"},{pattern:/\b[\w-]+(?=\s*\(\s*\)\s*\{)/,alias:"function"}],"for-or-select":{pattern:/(\b(?:for|select)\s+)\w+(?=\s+in\s)/,alias:"variable",lookbehind:!0},"assign-left":{pattern:/(^|[\s;|&]|[<>]\()\w+(?:\.\w+)*(?=\+?=)/,inside:{environment:{pattern:RegExp("(^|[\\s;|&]|[<>]\\()"+t),lookbehind:!0,alias:"constant"}},alias:"variable",lookbehind:!0},parameter:{pattern:/(^|\s)-{1,2}(?:\w+:[+-]?)?\w+(?:\.\w+)*(?=[=\s]|$)/,alias:"variable",lookbehind:!0},string:[{pattern:/((?:^|[^<])<<-?\s*)(\w+)\s[\s\S]*?(?:\r?\n|\r)\2/,lookbehind:!0,greedy:!0,inside:n},{pattern:/((?:^|[^<])<<-?\s*)(["'])(\w+)\2\s[\s\S]*?(?:\r?\n|\r)\3/,lookbehind:!0,greedy:!0,inside:{bash:a}},{pattern:/(^|[^\\](?:\\\\)*)"(?:\\[\s\S]|\$\([^)]+\)|\$(?!\()|`[^`]+`|[^"\\`$])*"/,lookbehind:!0,greedy:!0,inside:n},{pattern:/(^|[^$\\])'[^']*'/,lookbehind:!0,greedy:!0},{pattern:/\$'(?:[^'\\]|\\[\s\S])*'/,greedy:!0,inside:{entity:n.entity}}],environment:{pattern:RegExp("\\$?"+t),alias:"constant"},variable:n.variable,function:{pattern:/(^|[\s;|&]|[<>]\()(?:add|apropos|apt|apt-cache|apt-get|aptitude|aspell|automysqlbackup|awk|basename|bash|bc|bconsole|bg|bzip2|cal|cargo|cat|cfdisk|chgrp|chkconfig|chmod|chown|chroot|cksum|clear|cmp|column|comm|composer|cp|cron|crontab|csplit|curl|cut|date|dc|dd|ddrescue|debootstrap|df|diff|diff3|dig|dir|dircolors|dirname|dirs|dmesg|docker|docker-compose|du|egrep|eject|env|ethtool|expand|expect|expr|fdformat|fdisk|fg|fgrep|file|find|fmt|fold|format|free|fsck|ftp|fuser|gawk|git|gparted|grep|groupadd|groupdel|groupmod|groups|grub-mkconfig|gzip|halt|head|hg|history|host|hostname|htop|iconv|id|ifconfig|ifdown|ifup|import|install|ip|java|jobs|join|kill|killall|less|link|ln|locate|logname|logrotate|look|lpc|lpr|lprint|lprintd|lprintq|lprm|ls|lsof|lynx|make|man|mc|mdadm|mkconfig|mkdir|mke2fs|mkfifo|mkfs|mkisofs|mknod|mkswap|mmv|more|most|mount|mtools|mtr|mutt|mv|nano|nc|netstat|nice|nl|node|nohup|notify-send|npm|nslookup|op|open|parted|passwd|paste|pathchk|ping|pkill|pnpm|podman|podman-compose|popd|pr|printcap|printenv|ps|pushd|pv|quota|quotacheck|quotactl|ram|rar|rcp|reboot|remsync|rename|renice|rev|rm|rmdir|rpm|rsync|scp|screen|sdiff|sed|sendmail|seq|service|sftp|sh|shellcheck|shuf|shutdown|sleep|slocate|sort|split|ssh|stat|strace|su|sudo|sum|suspend|swapon|sync|sysctl|tac|tail|tar|tee|time|timeout|top|touch|tr|traceroute|tsort|tty|umount|uname|unexpand|uniq|units|unrar|unshar|unzip|update-grub|uptime|useradd|userdel|usermod|users|uudecode|uuencode|v|vcpkg|vdir|vi|vim|virsh|vmstat|wait|watch|wc|wget|whereis|which|who|whoami|write|xargs|xdg-open|yarn|yes|zenity|zip|zsh|zypper)(?=$|[)\s;|&])/,lookbehind:!0},keyword:{pattern:/(^|[\s;|&]|[<>]\()(?:case|do|done|elif|else|esac|fi|for|function|if|in|select|then|until|while)(?=$|[)\s;|&])/,lookbehind:!0},builtin:{pattern:/(^|[\s;|&]|[<>]\()(?:\.|:|alias|bind|break|builtin|caller|cd|command|continue|declare|echo|enable|eval|exec|exit|export|getopts|hash|help|let|local|logout|mapfile|printf|pwd|read|readarray|readonly|return|set|shift|shopt|source|test|times|trap|type|typeset|ulimit|umask|unalias|unset)(?=$|[)\s;|&])/,lookbehind:!0,alias:"class-name"},boolean:{pattern:/(^|[\s;|&]|[<>]\()(?:false|true)(?=$|[)\s;|&])/,lookbehind:!0},"file-descriptor":{pattern:/\B&\d\b/,alias:"important"},operator:{pattern:/\d?<>|>\||\+=|=[=~]?|!=?|<<[<-]?|[&\d]?>>|\d[<>]&?|[<>][&=]?|&[>&]?|\|[&|]?/,inside:{"file-descriptor":{pattern:/^\d/,alias:"important"}}},punctuation:/\$?\(\(?|\)\)?|\.\.|[{}[\];\\]/,number:{pattern:/(^|\s)(?:[1-9]\d*|0)(?:[.,]\d+)?\b/,lookbehind:!0}},a.inside=e.languages.bash;for(var s=["comment","function-name","for-or-select","assign-left","parameter","string","environment","function","keyword","builtin","boolean","file-descriptor","operator","punctuation","number"],o=n.variable[1].inside,i=0;i<s.length;i++)o[s[i]]=e.languages.bash[s[i]];e.languages.sh=e.languages.bash,e.languages.shell=e.languages.bash}(Prism);
+Prism.languages.json={property:{pattern:/(^|[^\\])"(?:\\.|[^\\"\r\n])*"(?=\s*:)/,lookbehind:!0,greedy:!0},string:{pattern:/(^|[^\\])"(?:\\.|[^\\"\r\n])*"(?!\s*:)/,lookbehind:!0,greedy:!0},comment:{pattern:/\/\/.*|\/\*[\s\S]*?(?:\*\/|$)/,greedy:!0},number:/-?\b\d+(?:\.\d+)?(?:e[+-]?\d+)?\b/i,punctuation:/[{}[\],]/,operator:/:/,boolean:/\b(?:false|true)\b/,null:{pattern:/\bnull\b/,alias:"keyword"}},Prism.languages.webmanifest=Prism.languages.json;
+</script>
+
+            <body>
+            <h1 id="dmproject">DM project</h1>
+<p>AIIT master's assignment cloud infrastructure special subject.</p>
+<p>Since this repository is for submission, a separate repository for maintenance will be forked. The fork destination will be linked to my personal account.</p>
+<p>Fork: https://github.com/akihitron/dm</p>
+<h2 id="requirementsandrestrictions">Requirements and restrictions</h2>
+<ul>
+<li>Instance management</li>
+<li>Image management</li>
+<li>SSH key management</li>
+<li>Compute node management</li>
+<li>Port map management</li>
+<li>Don't use Docker's easy features.</li>
+</ul>
+<h2 id="concept">Concept</h2>
+<p>The basic concept is to easily manage front servers, backend servers, and heterogeneous accelerator compute nodes for distributed on-premises servers and machine learning nodes in a global network, internal management, and access management.</p>
+<h2 id="softwarestack">Software stack</h2>
+<p><br/>
+<br/></p>
+<p>The front-end framework uses Vite and SWC. We use a framework that has a good balance of speed, stability, scalability, and simplicity.</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left;">Front-end</th>
+<th style="text-align:left;">Development</th>
+<th style="text-align:left;">Product</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">Server</td>
+<td style="text-align:left;">Vite(SWC)</td>
+<td style="text-align:left;">NGINX(Static)</td>
+</tr>
+</tbody>
+</table>
+<p>Front-end endpoint will be <a href="http://localhost:4050/">http://localhost:4050/</a>.</p>
+<p><br/>
+<br/></p>
+<p>The backend uses standard Express. Never use the Bun package as it will cause proxy issues with the frontend.</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left;">Back-end</th>
+<th style="text-align:left;">Development</th>
+<th style="text-align:left;">Product</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">Server</td>
+<td style="text-align:left;">Express(swc-node)</td>
+<td style="text-align:left;">NGINX(:443/) → Express(:3150/)</td>
+</tr>
+<tr>
+<td style="text-align:left;">Reload</td>
+<td style="text-align:left;">VSCode/nodemon/live-reload</td>
+<td style="text-align:left;">-</td>
+</tr>
+<tr>
+<td style="text-align:left;">Database</td>
+<td style="text-align:left;">Prisma(MySQL/PostgreSQL/SQLite)</td>
+<td style="text-align:left;">Prisma(MySQL/PostgreSQL/SQLite)</td>
+</tr>
+<tr>
+<td style="text-align:left;">Session</td>
+<td style="text-align:left;">Redis/Memcached/MemoryStore</td>
+<td style="text-align:left;">Redis/Memcached/MemoryStore</td>
+</tr>
+</tbody>
+</table>
+<p>Back-end endpoint will be <a href="http://localhost:3050/">http://localhost:3050/</a> or <a href="http://localhost:3150/">http://localhost:3150/</a>.</p>
+<p><br/>
+<br/></p>
+<p>The computing node is always isolated as binary. Available platforms are linux and macos.
+Unfortunately, windows platform is still required VM or WSL.</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left;">Node</th>
+<th style="text-align:left;">Development</th>
+<th style="text-align:left;">Product</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">Client</td>
+<td style="text-align:left;">NodeJS16(swc-node)</td>
+<td style="text-align:left;">tsc → NodeJS → pkg → Binary</td>
+</tr>
+<tr>
+<td style="text-align:left;">Proxy</td>
+<td style="text-align:left;">Not implemented yet</td>
+<td style="text-align:left;">Not implemented yet</td>
+</tr>
+</tbody>
+</table>
+<p><br/>
+<br/></p>
+<h3 id="supportedos">Supported OS</h3>
+<table>
+<thead>
+<tr>
+<th style="text-align:left;">OS</th>
+<th style="text-align:center;">Arch</th>
+<th style="text-align:center;">Support</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">Linux</td>
+<td style="text-align:center;">x64/arm64</td>
+<td style="text-align:center;">✔</td>
+</tr>
+<tr>
+<td style="text-align:left;">Linux</td>
+<td style="text-align:center;">x86/arm7-</td>
+<td style="text-align:center;"></td>
+</tr>
+<tr>
+<td style="text-align:left;">MacOS</td>
+<td style="text-align:center;">x64/arm64</td>
+<td style="text-align:center;">✔</td>
+</tr>
+<tr>
+<td style="text-align:left;">MacOS</td>
+<td style="text-align:center;">x86</td>
+<td style="text-align:center;"></td>
+</tr>
+<tr>
+<td style="text-align:left;">Windows</td>
+<td style="text-align:center;">Any</td>
+<td style="text-align:center;"></td>
+</tr>
+</tbody>
+</table>
+<h3 id="supportedaccelarators">Supported accelarators</h3>
+<table>
+<thead>
+<tr>
+<th style="text-align:left;">HW</th>
+<th style="text-align:center;">Support</th>
+<th style="text-align:left;">Desc</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">GeForce/Quadro/Tesla</td>
+<td style="text-align:center;">✔</td>
+<td style="text-align:left;">Based on nvidia container plugins.</td>
+</tr>
+<tr>
+<td style="text-align:left;">Radeon/W/MI Instinct</td>
+<td style="text-align:center;">✔</td>
+<td style="text-align:left;">Restricted by ROCm driver version. Required Vega+</td>
+</tr>
+<tr>
+<td style="text-align:left;">Jetson ( Orin/Xavier/Nano )</td>
+<td style="text-align:center;">✔</td>
+<td style="text-align:left;">Depends on each versions.</td>
+</tr>
+<tr>
+<td style="text-align:left;">TPU ( Coral )</td>
+<td style="text-align:center;">△</td>
+<td style="text-align:left;">WIP</td>
+</tr>
+<tr>
+<td style="text-align:left;">iGPU ( AMD/Intel )</td>
+<td style="text-align:center;"></td>
+<td style="text-align:left;"></td>
+</tr>
+<tr>
+<td style="text-align:left;">Metal ( Apple Sericon )</td>
+<td style="text-align:center;"></td>
+<td style="text-align:left;"></td>
+</tr>
+</tbody>
+</table>
+<p><br/>
+<br/></p>
+<p><br/>
+<br/></p>
+<h2 id="computenodeconfiguration">Compute node configuration</h2>
+<pre><code class="json language-json">{
+  "node_id": "&lt;make your node id first&gt;",
+  "api_key_id": "&lt;make your api key first&gt;",
+  "api_key_secret": "&lt;make your api key first&gt;",
+  "manipulator": {
+    "end_point": "http://localhost:3050/"
+  },
+  "driver": "docker",
+  "drivers": {
+    "docker": {
+      "end_point": null
+    },
+    "podman": {
+      "end_point": null
+    },
+    "lxd": {
+      "end_point": null
+    },
+    "kvm": {
+      "end_point": null
+    },
+    "xen": {
+      "end_point": null
+    },
+    "qemu": {
+      "end_point": null
+    }
+  },
+  "IPv4_CheckURL": "https://api.ipify.org",
+  "IPv6_CheckURL": "https://api64.ipify.org",
+
+  "use_ipv4": true,
+  "use_ipv6": false,
+  "ipv4_ports": {
+    "range01": {
+      "protocol": "tcp",
+      "range": [63000, 63030]
+    }
+  },
+  "ipv6_ports": {}
+}
+</code></pre>
+<ol>
+<li>Download binary from <a href="https://d3w.app/bin/">https://d3w.app/bin/</a> and add exec permission.</li>
+<li>Copy and setup configuration file.</li>
+</ol>
+<pre><code class="bash language-bash">sudo mkdir -p /etc/dmc
+cp compute/template.config.json /etc/dmc/config.json
+</code></pre>
+<ol start="3">
+<li>Create an entry point of compute node and issue an API key. After that setup config on compute node.</li>
+<li>Daemonize "compute" binary somehow. (Recommend to use pm2.)</li>
+</ol>
+<p><br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br></p>
+<hr>
+<p><br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br></p>
+<h1 id="frontendandbackendforadministratordeveloper">Frontend and backend for administrator/developer</h1>
+<h2 id="configurationforbackend">Configuration for back-end</h2>
+<ol>
+<li>Copy and setup configuration file.</li>
+</ol>
+<pre><code class="bash language-bash">sudo mkdir -p /etc/dmb
+cp backend/template.config.json /etc/dmb/config.json
+</code></pre>
+<ol start="2">
+<li><font color='red'>Start front-end and back-end server and setup root user.</font></li>
+</ol>
+<pre><code class="json language-json">{
+  "database": {
+    "driver": "sqlite",
+    "drivers": {
+      "mongodb": {
+        "end_point": "mongodb://&lt;username&gt;:&lt;password&gt;@localhost:27017/dmb"
+      },
+      "postgresql": {
+        "end_point": "postgresql://&lt;username&gt;:&lt;password&gt;@localhost:5432/dmb"
+      },
+      "sqlserver": {
+        "end_point": "sqlserver://&lt;username&gt;:&lt;password&gt;@localhost:1433/dmb"
+      },
+      "mysql": {
+        "end_point": "mysql://&lt;username&gt;:&lt;password&gt;@localhost:3306/dmb"
+      },
+      "sqlite": {
+        "end_point": "file:./workspace/sqlite.db?connection_limit=1"
+      }
+    }
+  },
+  "session_store": {
+    "driver": "memorystore",
+    "secret_key": "&lt;your session secret key&gt;",
+    "drivers": {
+      "redis": {
+        "host": "127.0.0.1",
+        "port": 6379,
+        "password": null
+      },
+      "memcached": {
+        "hosts": ["127.0.0.1:11211"]
+      },
+      "memorystore": {
+
+      }
+    }
+  },
+
+  "IPv4_CheckURL": "https://api.ipify.org",
+  "IPv6_CheckURL": "https://api64.ipify.org",
+
+
+  "email": {
+    "driver": "gmail",
+    "drivers": {
+      "gmail": {
+        "user": "&lt;your@gmail.com&gt;",
+        "pass": "&lt;your password&gt;"
+      }
+    }
+  },
+  "default_users": []
+}
+</code></pre>
+<h2 id="installationandrun">Installation and Run</h2>
+<p>Nodejs 16+ based on nvm.
+Ubuntu18- version, there is libc package issue. NodeJS18 requires glibc 2.28, and it has to downgrade the package version when you used older linux OS. In particular, some edge devices often restricted by vendor like NVIDIA and Google.</p>
+<pre><code class="bash language-bash">curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.5/install.sh | bash
+nvm install 16
+node -v
+</code></pre>
+<h3 id="forbackend">For back-end</h3>
+<pre><code class="bash language-bash">##################################################
+# In development
+cd backend &amp;&amp; npm ci
+rm -rf ~/.pm2 # delete cache
+npm install -g swc-node nodemon pm2 # execute with sudo in linux.
+
+# Setup your config.json
+
+##################################################
+# Initialize database
+npm run init
+
+# debug or launch from vscode with launch.json
+npm run debug
+
+##################################################
+# In product
+npm start # build + run on dist
+</code></pre>
+<p>The endpoint will be <a href='http://localhost:3050'>http://localhost:3050</a> in development.
+In product, it will be <a href='http://localhost:3150'>http://localhost:3150</a>.</p>
+<p>In deployment, "pm2 startup" is useful to prevent reboot of host.</p>
+<pre><code class="bash language-bash">AMD5950X-4090:back$ pm2 startup
+[PM2] Init System found: systemd
+[PM2] To setup the Startup Script, copy/paste the following command:
+sudo env PATH=$PATH:/usr/local/bin /usr/local/lib/node_modules/pm2/bin/pm2 startup systemd -u johndoe --hp /home/johndoe
+
+AMD5950X-4090:back$ sudo env PATH=$PATH:/usr/local/bin /usr/local/lib/node_modules/pm2/bin/pm2 startup systemd -u johndoe --hp /home/johndoe
+
+# after that, pm2 restart your app when you reboot a host.
+</code></pre>
+<h3 id="forfrontend">For front-end</h3>
+<pre><code class="bash language-bash">##################################################
+# In development
+cd frontend &amp;&amp; npm ci
+npm start # Vite
+
+npm run start2 # Farm
+# Farm is faster than Vite and modern framework for front-end.
+# But the framework is only available in Linux. No use in macosx and windows.
+</code></pre>
+<p>The endpoint will be <a href='http://localhost:4050'>http://localhost:4050</a></p>
+<p>Front-end deployment flow is super simple, because it's just static HTML.
+Just locate the deployed files on nginx after built.</p>
+<pre><code class="bash language-bash">##################################################
+# In Product
+cd frontend &amp;&amp; npm ci
+npm run build # to "./dist" and base url will be "/"
+BASE_URL=hogehoge npm run build # The react router will refer "/hogehoge" as base url.
+
+
+##################################################
+# Nginx example
+.
+.
+.
+root /home/johndoe/repos/frontend/dist;
+
+
+location / {
+    # Prevent XSS
+    add_header Referrer-Policy same-origin;
+    add_header Cross-Origin-Opener-Policy same-origin;
+    add_header Cross-Origin-Embedder-Policy require-corp;
+    # No cache
+    add_header Last-Modified $date_gmt;
+    add_header Cache-Control 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0';
+    if_modified_since off;
+    expires off;
+    etag off;
+
+    # Index HTML
+    index  index.html index.htm;
+
+    # React Router
+    try_files $uri /index.html;
+}
+
+location /api/ {
+    # proxy_pass http://localhost:3050/; # To back-end for dev
+    proxy_pass http://localhost:3150/; # To back-end for product
+    proxy_http_version 1.1; # For express
+    proxy_set_header Upgrade $http_upgrade; # For express
+
+    # Proxy header
+    proxy_cache_bypass $http_upgrade;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-Host $host;
+    proxy_set_header X-Forwarded-Server $host;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_buffers 8 64m;
+    proxy_buffer_size 64m;
+}
+
+.
+.
+.
+</code></pre>
+<h3 id="forcomputenode">For compute node</h3>
+<pre><code class="bash language-bash">##################################################
+# In development
+cd compute &amp;&amp; npm ci
+
+# Setup your config.json
+
+npm start # development
+
+
+##################################################
+# In product, binary build for x64 arch (Linux/MacOSX)
+npm run build # The binary will be into "./bin" directory.
+
+
+# ARM arch is separated command.
+# pkg command cannot provide standalone cross compiling between arm and intel, so you need to build on target machine.
+# Build env(linux-x64)   =&gt; linux-x64, darwin-x64 are ok.
+# Build env(linux-x64)   =&gt; linux-arm64, darwin-arm64 are not available.
+# Build env(linux-arm64) =&gt; linux-arm64 is ok, but macos-arm64 is not available.
+# Build env(macosx-arm64) =&gt; linux-arm64 is not available, but macos-arm64 is ok.
+npm run build_arm # The binary will be into "./bin" directory.
+</code></pre>
+<p><br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br></p>
+<h2 id="dockerdockercommunityedition">Docker (Docker Community Edition)</h2>
+<p>docker.io is maintained by Canonical, the same company as UbuntuOS, but we recommend docker-ce because it has many problems.
+In particular, wsl2+ubuntu22.04+docker.io has a lot of problem.</p>
+<pre><code class="bash language-bash">sudo apt install apt-transport-https ca-certificates curl software-properties-common
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list &gt; /dev/null
+sudo apt update
+sudo apt install docker-ce
+sudo usermod -aG docker $USER
+
+exit
+</code></pre>
+<pre><code class="bash language-bash">johndoe@johndoe:/mnt/c/Users/johndoew$ docker ps
+CONTAINER ID   IMAGE     COMMAND   CREATED   STATUS    PORTS     NAMES
+</code></pre>
+<h2 id="nvidiadocker">nvidia-docker</h2>
+<p>In AMD, the ROCm has to manage /dev/card*** devices on your self, but nvidia provides GPU passthrough system on docker.
+CUDA will be available on nvidia-docker plugin, and you can avoid a mismatch driver version problem between host and container.</p>
+<p><a href="https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html">https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html</a></p>
+<pre><code class="bash language-bash">curl -fsSL https://nvidia.github.io/libnvidia-container/gpgkey | sudo gpg --dearmor -o /usr/share/keyrings/nvidia-container-toolkit-keyring.gpg \
+  &amp;&amp; curl -s -L https://nvidia.github.io/libnvidia-container/stable/deb/nvidia-container-toolkit.list | \
+    sed 's#deb https://#deb [signed-by=/usr/share/keyrings/nvidia-container-toolkit-keyring.gpg] https://#g' | \
+    sudo tee /etc/apt/sources.list.d/nvidia-container-toolkit.list \
+  &amp;&amp; \
+    sudo apt-get update
+
+sudo apt-get install -y nvidia-container-toolkit
+
+sudo service docker restart # apply to docker
+
+# Test
+docker run --gpus all -it --rm nvidia/cuda:10.0-base nvidia-smi
+</code></pre>
+<h2 id="lxclxdtodo">LXC/LXD (TODO)</h2>
+<p>The purpose of LXD is to create persistent containers.
+It is located between a VM and a temporary container, is a container system maintained by Canonical, and is highly compatible with Ubuntu. By the way, First docker system was using LXC.</p>
+<h3 id="knownissues">Known issues</h3>
+<ul>
+<li>ZFS disk leak problem</li>
+</ul>
+<h2 id="podmantodo">Podman (TODO)</h2>
+<p>Docker desktop for macos has become a paid service, so podman support is likely to be available for free.</p>
+<p><br>
+<br>
+<br></p>
+<h2 id="databaseinstallationtipsforbackendserver">Database installation tips for backend server</h2>
+<p>The database for the persistence part is based on Prisma and supports MySQL/Postgresql/SQLite, and supports Redis/Memcached/MemoryStore as session store. The default configuration is a combination of SQLite/MemoryStore for standalone. If you want to make your database persistent, choose MySQL or PostgreSQL. In session persistence or distributed backends, choose Redis or Memcached.</p>
+<p>Redis</p>
+<pre><code class="bash language-bash">sudo apt install -y redis-server
+sudo service redis start
+</code></pre>
+<p>Memcached</p>
+<pre><code class="bash language-bash">sudo apt install -y memcached
+sudo service memcached start
+</code></pre>
+<p>SQLite</p>
+<pre><code class="bash language-bash"># Nothing to do.
+</code></pre>
+<p>PostgreSQL + Ubuntu22.04</p>
+<pre><code class="bash language-bash">sudo apt update &amp;&amp; sudo apt install -y postgresql postgresql-contrib
+
+# Make sure to connect
+sudo -u postgres psql
+
+ALTER ROLE postgres WITH password '&lt;your password&gt;'; # Change your favorite password.
+
+# DATABASE_URL="postgresql://&lt;username&gt;:&lt;password&gt;@&lt;host&gt;:&lt;port&gt;/&lt;database_name&gt;"
+# Example,
+#  DATABASE_URL=postgres://postgres:&lt;your password&gt;@localhost:5432/dmb
+
+# Setup config.json.
+# .
+# .
+#  "database": {
+#    "driver": "prisma",
+#    "drivers": {
+#      "prisma": { "end_point": "postgres://postgres:&lt;your password&gt;@localhost:5432/dmb" },
+#    }
+#  },
+#.
+#.
+
+# modify backend/prisma/schema.prisma file.
+#
+# datasource db {
+#  provider = "sqlite"
+#  url      = env("DATABASE_URL")
+# }
+#
+# To
+#
+# datasource db {
+#  provider = "postgres"
+#  url      = env("DATABASE_URL")
+# }
+
+# Run "npm run init" or "npm run sync"
+# Prisma has something cache for definition. You need to refresh them when you changed the database engine.
+</code></pre>
+<p>MySQL(8) + Ubuntu22.04</p>
+<pre><code class="bash language-bash"># Install
+sudo apt update &amp;&amp; sudo apt install -y mysql-server
+
+# Start
+sudo systemctl start mysql.service
+
+
+# Configuration
+sudo mysql
+
+
+mysql&gt; ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY '&lt;your root password&gt;';
+mysql&gt; exit
+
+
+sudo mysql_secure_installation
+
+
+# Create a new user and permit to connect from local network if you want.
+mysql -u root -p
+mysql&gt; CREATE USER '&lt;your name&gt;'@'192.168.1.0/255.255.255.0' IDENTIFIED BY '&lt;your password&gt;';
+mysql&gt; GRANT ALL PRIVILEGES ON &lt;database name&gt;.* TO '&lt;your name&gt;'@'192.168.1.0/255.255.255.0' WITH GRANT OPTION;
+# GRANT ALL PRIVILEGES ON dmb.* TO 'johndoe'@'192.168.1.0/255.255.255.0' WITH GRANT OPTION;
+mysql&gt; FLUSH PRIVILEGES;
+mysql&gt; exit
+sudo systemctl restart mysql
+</code></pre>
+<p><br>
+<br>
+<br></p>
+<p>Database initializer</p>
+<pre><code class="bash language-bash">npm run init # delete + sync
+
+# If you changed database or schema, sync prisma.schema and database.
+# Prisma has ORM cache definition, so it needs to update when you change something.
+npm run sync
+</code></pre>
+<p>GUI for SQLite(web)</p>
+<pre><code class="bash language-bash">npm run gui # for sqlite
+</code></pre>
+<p>GUI for PostgreSQL(desktop app)</p>
+<pre><code class="bash language-bash">sudo curl https://www.pgadmin.org/static/packages_pgadmin_org.pub | sudo apt-key add
+sudo sh -c 'echo "deb https://ftp.postgresql.org/pub/pgadmin/pgadmin4/apt/$(lsb_release -cs) pgadmin4 main" &gt; /etc/apt/sources.list.d/pgadmin4.list'
+
+sudo apt update
+sudo apt install -y pgadmin4
+
+# Search pgAdmin4(desktop app) on app search box on Ubuntu GUI.
+</code></pre>
+<p>GUI for MySQL</p>
+<ul>
+<li><s>MySQL Workbench</s> (Not recommended)</li>
+<li>DBeaver</li>
+<li>phpMyAdmin</li>
+<li>HeidiSQL(Windows)</li>
+</ul>
+<h3 id="jetson">Jetson</h3>
+<p>In jetpack 4.6, docker has permission problem.
+Please set permissions appropriately according to the command below.</p>
+<pre><code class="bash language-bash">sudo usermod -aG docker $USER
+sudo chmod 666 /var/run/docker.sock
+sudo service docker restart
+exit # re-login
+</code></pre>
+<p><br>
+<br>
+<br>
+<br>
+<br></p>
+            </body>
+        </html>
+        

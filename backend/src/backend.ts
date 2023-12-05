@@ -72,6 +72,7 @@ function ConvertMarkdownToHTML(params: AppParams) {
             </body>
         </html>
         `;
+        fs.writeFileSync(path.join(__dirname, "../../index.html"), DOCUMENT);
         return DOCUMENT;
     }
     return "";
