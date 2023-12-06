@@ -8,7 +8,10 @@
   "ipv4_ports": {
     "range01": {
       "protocol": "tcp",
-      "range": [63000, 63005]
+      "range": [
+        63000,
+        63005
+      ]
     }
   }
 }

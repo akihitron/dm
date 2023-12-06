@@ -24,8 +24,8 @@ export default (_app_name: string, _params: any = {}) => {
     const etc_json = `/etc/${app_name}/config.json`;
     const template_json = path.join(__dirname, `./template.config.json`);
     const user_defined_json = params.config_path;
-    let _warn = (...args: any[]) => { };
-    let _log = (...args: any[]) => { };
+    let _warn = (...args: any[]) => {};
+    let _log = (...args: any[]) => {};
     if (!params.silent) {
         // _warn = (...args: any[]) => console.warn(...args);
         // _log = (...args: any[]) => console.log(...args);
@@ -34,13 +34,19 @@ export default (_app_name: string, _params: any = {}) => {
     _warn = (...args: any[]) => console.warn(...args);
     _log = (...args: any[]) => console.log(...args);
 
-
     const load = (f: string, warn = false) => {
         if (CONFIG == null) {
-            if (fs.existsSync(f)) try { (warn ? _warn("Found:", f) : _log("\x1b[32mFound:", f, "\x1b[0m")); CONFIG = require(f); config_file = f; } catch (e) { console.error(e) }
+            if (fs.existsSync(f))
+                try {
+                    warn ? _warn("Found:", f) : _log("\x1b[32mFound:", f, "\x1b[0m");
+                    CONFIG = require(f);
+                    config_file = f;
+                } catch (e) {
+                    console.error(e);
+                }
             else warn ? _warn("Not found:", f) : _log("Not found:", f);
         }
-    }
+    };
     // Try all config files.
     if (user_defined_json) {
         load(user_defined_json, true);
@@ -49,7 +55,6 @@ export default (_app_name: string, _params: any = {}) => {
         load(etc_json);
         if (IS_DEVELOPMENT_MODE) load(template_json, true);
     }
-
 
     // Check config.
     if (CONFIG == null) {
@@ -60,17 +65,17 @@ export default (_app_name: string, _params: any = {}) => {
     // Watch config file.
     if (template_json != config_file) {
         fs.watch(config_file, function (event, filename) {
-            _log(event + ' to ' + filename);
+            _log(event + " to " + filename);
             if (event == "change") {
                 try {
                     const time = new Date();
                     fs.utimesSync(path.join(__dirname, "config.ts"), time, time);
                 } catch {
-                    fs.closeSync(fs.openSync(path.join(__dirname, "config.ts"), 'w'));
+                    fs.closeSync(fs.openSync(path.join(__dirname, "config.ts"), "w"));
                 }
             }
         });
     }
     console.log("------------------------------------------\n\n");
     return CONFIG;
-}
+};

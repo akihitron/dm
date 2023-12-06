@@ -1,37 +1,15 @@
 import os from "os";
 import fs from "fs";
 import Docker, { Container } from "dockerode";
-import childProcess, { spawn } from 'child_process';
-import util from 'util';
+import childProcess, { spawn } from "child_process";
+import util from "util";
 import { Driver, Image, Instance, InstanceState } from "./driver";
 import logger from "../logger";
 import crypto from "crypto";
 
 const DOCKER_COMMAND = "docker";
 
-
 const exec = util.promisify(childProcess.exec);
-
-
-async function s_exec(command: string, args: Array<string>) {
-    return new Promise((resolve, reject) => {
-        const child = spawn(command, args);
-        console.log(command, args.join(" "));
-
-        child.stdout.on('data', (data) => {
-            process.stdout.write(data);
-        });
-
-        child.stderr.on('data', (data) => {
-            process.stderr.write(data);
-        });
-
-        child.on('close', (code) => {
-            console.log(`Child process exited with code ${code}`);
-            resolve(0);
-        });
-    });
-}
 
 function sleep(ms: number) {
     return new Promise((resolve) => {
@@ -69,11 +47,11 @@ class CommandHelper {
             // await sleep(1000);
             logger.info(execute_command);
             // const childProcess = spawn(execute_command, {shell:true});
-            const childProcess = spawn(`${DOCKER_COMMAND} exec "${this.instance_key}" bash -c "${execute_command}"`, {shell:true, stdio: 'inherit'});
+            const childProcess = spawn(`${DOCKER_COMMAND} exec "${this.instance_key}" bash -c "${execute_command}"`, { shell: true, stdio: "inherit" });
             // const childProcess = spawn(command.shift() as string, command, {shell:true, stdio: 'inherit'}});
             // childProcess.stdout.on('data', (data) => process.stdout.write(data));
             // childProcess.stderr.on('data', (data) => process.stderr.write(data));
-            childProcess.on('close', (code) => {
+            childProcess.on("close", (code) => {
                 logger.log(`child process exited with code ${code}`);
                 resolve("");
             });
@@ -115,12 +93,9 @@ class CommandHelper {
         // return this._exec(`${this.sudo} ${this._remove} ${packages.join(" ")}`);
         return this._spawn(`${this.sudo} ${this._remove} ${packages.join(" ")}`);
     }
-};
+}
 
-const CommandHelperTable = [
-    new CommandHelper("apt-get", "apt-get install -y", "apt-get update", "apt-get upgrade -y", "apt-get purge -y"),
-    new CommandHelper("yum", "yum install -y", "", "yum update -y", "yum erase -y"),
-];
+const CommandHelperTable = [new CommandHelper("apt-get", "apt-get install -y", "apt-get update", "apt-get upgrade -y", "apt-get purge -y"), new CommandHelper("yum", "yum install -y", "", "yum update -y", "yum erase -y")];
 
 function which(name: string): Promise<boolean> {
     return new Promise((resolve, reject) => {
@@ -137,7 +112,7 @@ function which(name: string): Promise<boolean> {
 
 const docker_witch = (command: string, instance_key: string) => {
     return new Promise((resolve, reject) => {
-        console.log(`${DOCKER_COMMAND} exec "${instance_key}" bash -c  "command -v ${command}"`);        
+        console.log(`${DOCKER_COMMAND} exec "${instance_key}" bash -c  "command -v ${command}"`);
         childProcess.exec(`${DOCKER_COMMAND} exec "${instance_key}" bash -c  "command -v ${command}"`, (err, stdout, stderr) => {
             if (err) {
                 logger.log(err);
@@ -148,27 +123,26 @@ const docker_witch = (command: string, instance_key: string) => {
             }
         });
     });
-}
+};
 
 function _getContainerByName(docker: any, name: string): Promise<any> {
     return new Promise((resolve, reject) => {
         docker.listContainers({ all: true }, function (err: any, containers: any) {
             if (err) {
-                reject(err)
+                reject(err);
             } else {
                 const container_info = containers.filter((container: any) => container.Names.includes("/" + name))[0];
                 // logger.log(container_info,containers);
                 if (container_info) {
                     const container = docker.getContainer(container_info.Id);
-                    resolve(container)
+                    resolve(container);
                 } else {
-                    resolve(null)
+                    resolve(null);
                 }
             }
         });
-    })
+    });
 }
-
 
 function _create_image_info(d_image: any): Image {
     const img = new Image();
@@ -210,7 +184,7 @@ async function _create_container_info(docker: any, d_ins: any): Promise<Instance
 
     ins.cpu = os.cpus().length;
     ins.memory = os.totalmem() / 1024 / 1024;
-    ins.storage = -1;// /1024/1024/1024
+    ins.storage = -1; // /1024/1024/1024
 
     if (ins.network_mode == "host") {
     } else {
@@ -228,10 +202,7 @@ async function _create_container_info(docker: any, d_ins: any): Promise<Instance
     return ins;
 }
 
-
-
 export class DockerDriver implements Driver {
-
     config: any;
 
     constructor(config: any) {
@@ -311,12 +282,10 @@ export class DockerDriver implements Driver {
         const minor_version: number = parseInt(docker_version.split(".")[1]);
         const patch_version: number = parseInt(docker_version.split(".")[2]);
 
-
         const c_params = params.params; // Special sub command
         const command = c_params.command;
         const args = c_params.args;
         const os_hint = c_params.os_hint ?? "ubuntu";
-
 
         let instance_key;
 
@@ -334,7 +303,6 @@ export class DockerDriver implements Driver {
                 //  Actually ipc is not recommended, but this service is for inner members.
                 //  And machine learning needs a lot of memory, its better to use ipc(share memory) host.
                 // See: https://docs.docker.com/engine/reference/run/#ipc-settings---ipc
-
 
                 if (major_version < 19 || (major_version == 19 && minor_version < 3)) {
                     throw new Error("Does not support a gpu passthrough.");
@@ -401,7 +369,6 @@ export class DockerDriver implements Driver {
             command_helper.sudo = sudo;
             instance_key = command_helper.instance_key = instance.key;
 
-
             logger.log(ssh);
             if (ssh.install) {
                 logger.log("Install SSHD.");
@@ -443,7 +410,7 @@ export class DockerDriver implements Driver {
                 logger.info("Without SSHD.");
             }
 
-            // instance.storage = instance.storage == 
+            // instance.storage = instance.storage ==
             // instance.total_storage = instance.total_storage == -1 ? total : instance.total_storage;
             instance.global_ipv4 = instance.global_ipv4 ?? this.config.IPv4;
             instance.global_ipv6 = instance.global_ipv6 ?? this.config.IPv6;
@@ -451,8 +418,18 @@ export class DockerDriver implements Driver {
             return instance;
         } catch (e) {
             logger.error(e);
-            if (instance_key) try { await this.delete_instance({ key: instance_key }) } catch (e) { logger.error(e); }
-            else try { await this.delete_instance({ name: name }) } catch (e) { logger.error(e); }
+            if (instance_key)
+                try {
+                    await this.delete_instance({ key: instance_key });
+                } catch (e) {
+                    logger.error(e);
+                }
+            else
+                try {
+                    await this.delete_instance({ name: name });
+                } catch (e) {
+                    logger.error(e);
+                }
             throw e;
         }
         return null;
@@ -464,7 +441,7 @@ export class DockerDriver implements Driver {
         const container_info = await container.inspect();
         const instance = await _create_container_info(docker, container_info);
         // await container.stop();
-        await container.remove({ force: { true: 'true' } });
+        await container.remove({ force: { true: "true" } });
         return instance;
     }
 
@@ -503,7 +480,6 @@ export class DockerDriver implements Driver {
             await command_helper._exec(`/etc/init.d/sshd start`, true);
             await command_helper._exec(`/etc/rc.d/sshd start`, true);
             await command_helper._exec(`/usr/sbin/sshd -D`, true);
-
         }
 
         const container_info = await container.inspect();
@@ -546,32 +522,29 @@ export class DockerDriver implements Driver {
                                 process.stdout.write(`${event.id}:${event.status}\n${event.progress}`);
                             }
                         }
-
                     }
                 });
-            })
-        };
+            });
+        }
         // Notice:
         //  Docker pull is a terrible API that doesn't return an explicit status, so identify it with a difference set.
         //  Note that it does not work in parallel.
         const pre_images = await docker.listImages();
-        const _ = await pull(url) as [any];
+        const _ = (await pull(url)) as [any];
         const cur_images = await docker.listImages();
 
-        const an_image = cur_images.filter(aObj => {
-            return !pre_images.some(bObj => JSON.stringify(aObj) === JSON.stringify(bObj));
+        const an_image = cur_images.filter((aObj) => {
+            return !pre_images.some((bObj) => JSON.stringify(aObj) === JSON.stringify(bObj));
         })[0];
 
         if (an_image == null) {
             throw new Error("Could not create an image or the image already exists.");
         }
 
-
         const ret = _create_image_info(an_image);
         logger.log(ret);
         return ret;
     }
-
 
     async handle_event(params: any) {
         const self: any = this;

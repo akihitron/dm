@@ -182,7 +182,7 @@ export default function Account(prop: any) {
 
 			<h1>Change Password</h1>
 			{processing ? <Card><CardContent><Box sx={{ display: processing ? 'flex' : 'none', width:"100%",alignItems:"center", justifyContent:"center" }}>
-				<CircularProgress />
+				<CircularProgress size="1.5rem" />
 			</Box> </CardContent></Card>: <>
 				<Card>
 					<CardContent>
@@ -205,7 +205,7 @@ export default function Account(prop: any) {
 							}}
 								color="primary" disabled={disable_submit}>
 								<Box sx={{ display: processing ? 'flex' : 'none' }}>
-									<CircularProgress />
+									<CircularProgress size="1.5rem" />
 								</Box>
 								{processing == false ? 'Change Password' : ''}
 

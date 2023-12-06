@@ -182,7 +182,7 @@ export function StoreContextProvider(props: { children: ReactNode | JSX.Element 
 	}, [s_lang]);
 
 	const { theme, is_dark_theme, setColorMode } = useAppTheme();
-	const [is_logged_in, setLogin] = useState<Boolean|null>(null);
+	const [is_logged_in, setLogin] = useState<Boolean | null>(null);
 	const [user, setUser] = useState({});
 	const [debug_components, setDebugComponents] = useState(g_use_debug_components);
 
@@ -217,7 +217,7 @@ export function StoreContextProvider(props: { children: ReactNode | JSX.Element 
 				use_debug_components: debug_components,
 				user: user,
 				available_langs: available_langs,
-				
+
 				toggleDebugComponents: () => {
 					toggleDebugComponents();
 				},

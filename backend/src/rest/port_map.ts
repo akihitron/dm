@@ -1,10 +1,9 @@
-import express, { Express, Request, Response, NextFunction } from 'express';
+import express, { Express, Request, Response, NextFunction } from "express";
 import { AppParams, MainContext, RejectNotLoggedIn, CheckAdmin, Node, Event, CheckJSONProperties } from "../global";
-import logger from '../logger';
-import { PrismaClient } from '@prisma/client';
+import logger from "../logger";
+import { PrismaClient } from "@prisma/client";
 
-
-export async function GetPortMap(user_id: string, node_id: string|null, ORM: PrismaClient): Promise<Array<any>> {
+export async function GetPortMap(user_id: string, node_id: string | null, ORM: PrismaClient): Promise<Array<any>> {
     const node_table = new Map<string, boolean>();
     const managed_compute_nodes = await ORM.managed_compute_node.findMany({ where: { user_id } });
     const managed_instances = await ORM.managed_instance.findMany({ where: { user_id } });
@@ -14,7 +13,7 @@ export async function GetPortMap(user_id: string, node_id: string|null, ORM: Pri
     for (const node of own_nodes) node_table.set(node.id, true);
 
     const node_ids = Array.from(node_table.keys());
-    const ins_ids = Array.from(managed_instances.filter((ins:any) => ins.instance_id).map((ins:any) => ins.instance_id));
+    const ins_ids = Array.from(managed_instances.filter((ins: any) => ins.instance_id).map((ins: any) => ins.instance_id));
 
     if (node_ids.length == 0) return [];
     const node_table2 = new Map<string, any>();
@@ -23,7 +22,7 @@ export async function GetPortMap(user_id: string, node_id: string|null, ORM: Pri
     for (const node of nodes) node_table2.set(node.id, node);
     const instances = await ORM.instance.findMany({ where: { id: { in: ins_ids } } });
     for (const ins of instances) ins_table2.set(ins.id, ins);
-    const managed_port_map = JSON.parse(JSON.stringify(await ORM.port_map.findMany({ where: { node_id:{in:node_ids} } })));
+    const managed_port_map = JSON.parse(JSON.stringify(await ORM.port_map.findMany({ where: { node_id: { in: node_ids } } })));
     for (const pm of managed_port_map) {
         const node = node_table2.get(pm.node_id);
         const ins = ins_table2.get(pm.instance_id);
@@ -37,9 +36,8 @@ export async function GetPortMap(user_id: string, node_id: string|null, ORM: Pri
         if (ins) {
             pm.instance_name = ins.name;
         }
-
     }
-    if (node_id) return managed_port_map.filter((port_map:any) => port_map.node_id == node_id);
+    if (node_id) return managed_port_map.filter((port_map: any) => port_map.node_id == node_id);
 
     return managed_port_map;
 }
@@ -51,9 +49,9 @@ export default async (context: MainContext) => {
     const ApiLimiter = context.limiters.ApiLimiter;
     const SensitiveLimiter = context.limiters.SensitiveLimiter;
 
-
-    app.get('/v1/port_map/list', CommonLimiter, RejectNotLoggedIn, async (req: Request, res: Response) => {
-        const { _error_, node_id } = CheckJSONProperties([{key:"node_id", nullable:true}], req); if (_error_) return res.json({ error: _error_ });
+    app.get("/v1/port_map/list", CommonLimiter, RejectNotLoggedIn, async (req: Request, res: Response) => {
+        const { _error_, node_id } = CheckJSONProperties([{ key: "node_id", nullable: true }], req);
+        if (_error_) return res.json({ error: _error_ });
         const session = req.session as any;
         const user_id = session.user.user_id;
         try {
@@ -65,25 +63,25 @@ export default async (context: MainContext) => {
         }
     });
 
-    app.post('/v1/port_map/create', ApiLimiter, RejectNotLoggedIn, async (req: Request, res: Response) => {
-        const { _error_, instance_id } = CheckJSONProperties(["instance_id"], req); if (_error_) return res.json({ error: _error_ });
+    app.post("/v1/port_map/create", ApiLimiter, RejectNotLoggedIn, async (req: Request, res: Response) => {
+        const { _error_, instance_id } = CheckJSONProperties(["instance_id"], req);
+        if (_error_) return res.json({ error: _error_ });
         const session = req.session as any;
         const user_id = session.user.user_id;
         // TODO: Request to computing node
         res.json({ error: null, data: {} });
     });
 
-    app.post('/v1/port_map/delete', ApiLimiter, RejectNotLoggedIn, async (req: Request, res: Response) => {
-        const { _error_, id } = CheckJSONProperties(["id"], req); if (_error_) return res.json({ error: _error_ });
+    app.post("/v1/port_map/delete", ApiLimiter, RejectNotLoggedIn, async (req: Request, res: Response) => {
+        const { _error_, id } = CheckJSONProperties(["id"], req);
+        if (_error_) return res.json({ error: _error_ });
         const session = req.session as any;
         const user_id = session.user.user_id;
 
         try {
-
-        
             const port_map = await ORM.port_map.findUnique({ where: { id: id } });
             if (!port_map) return res.json({ error: "Not found port map [t5OdmA8VjH]" });
-            
+
             const node = await ORM.compute_node.findUnique({ where: { id: port_map.node_id } });
             if (!node) {
                 await ORM.port_map.delete({ where: { id: id } });
@@ -121,6 +119,4 @@ export default async (context: MainContext) => {
             return res.json({ error: "Internal Server Error [iQXl2C2q1N]" });
         }
     });
-
-
-}
+};

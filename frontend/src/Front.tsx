@@ -456,7 +456,7 @@ export default () => {
 				aria-describedby='modal-modal-description'
 			>
 				<Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100%', height: '100%' }}>
-					<CircularProgress />
+					<CircularProgress size="1.5rem" />
 				</Box>
 			</Modal>
 

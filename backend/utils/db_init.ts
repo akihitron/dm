@@ -6,8 +6,6 @@ const APP_NAME = require("../package.json").name;
 ////////////////////////////////////////////////////////////////////////////////////
 // Main Proc
 async function main(params: AppParams) {
-
-
     const app_name = APP_NAME;
     params.server_name = `${app_name} server`;
     params.app_name = app_name;
@@ -15,7 +13,7 @@ async function main(params: AppParams) {
     params.init.session_store = false;
 
     await s_exe_s(`rm -rf ~/.cache/prisma*`);
-    
+
     const context: MainContext = await configure(params);
 
     // DATABASE_URL="<protocol>://<username>:<password>@<host>:<port>/<database>"
@@ -23,8 +21,6 @@ async function main(params: AppParams) {
     // await context.clear_sessions();
     process.exit(0);
 }
-
-
 
 //////////////////////////////////////////////////////////////////////////////////////
 // Single thread

@@ -118,7 +118,7 @@ export default ({ onClosed, show }: Props) => {
 				}
 
 				if (cps != ps) available_to_post = false;
-				console.log(available_to_post,check_email(em),check_password(ps));
+				console.log(available_to_post, check_email(em), check_password(ps));
 				setSignupButtonState(!(available_to_post && check_email(em) && check_password(ps)));
 			}
 
@@ -205,7 +205,7 @@ export default ({ onClosed, show }: Props) => {
 							</Typography>
 							{(() => {
 								if (access_state) {
-									return <CircularProgress sx={{ my: 7 }} />;
+									return <CircularProgress size="1.5rem" sx={{ my: 7 }} />;
 								}
 								return (
 									<Box component='form' onSubmit={handleSubmit} noValidate sx={{ mt: 4 }}>
@@ -228,7 +228,7 @@ export default ({ onClosed, show }: Props) => {
 										})()}
 										<Button type='submit' fullWidth variant='contained' sx={{ mt: 3, mb: 2, height: 50 }} disabled={signup_button_state}>
 											<Box sx={{ display: access_state == 0 ? 'none' : 'flex' }}>
-												<CircularProgress />
+												<CircularProgress size="1.5rem" />
 											</Box>
 											{access_state == 0 ? T('common.root_signup') : ''}
 										</Button>

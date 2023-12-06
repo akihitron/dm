@@ -1,9 +1,8 @@
-import express, { Express, Request, Response, NextFunction } from 'express';
+import express, { Express, Request, Response, NextFunction } from "express";
 import { AppParams, MainContext, RejectNotLoggedIn, CheckAdmin, Node, Event, CheckJSONProperties } from "../global";
-import { NodeTable } from './compute_node';
-import logger from '../logger';
-import { PrismaClient } from '@prisma/client';
-
+import { NodeTable } from "./compute_node";
+import logger from "../logger";
+import { PrismaClient } from "@prisma/client";
 
 export default async (context: MainContext) => {
     const app = context.app as Express;
@@ -22,7 +21,7 @@ export default async (context: MainContext) => {
             if (nodes.length > 0) {
                 for (const node of nodes) n_table.set(node.id, node);
                 const n_ids = nodes.filter((n: any) => n.id).map((n: any) => n.id);
-                
+
                 const image_list = await ORM.image.findMany({ where: { node_id: { in: n_ids } } });
                 const cloned = JSON.parse(JSON.stringify(image_list));
                 for (const o of cloned) {
@@ -65,8 +64,9 @@ export default async (context: MainContext) => {
         return null;
     }
 
-    app.get('/v1/image/list', CommonLimiter, RejectNotLoggedIn, async (req: Request, res: Response) => {
-        const { _error_ } = CheckJSONProperties([], req); if (_error_) return res.json({ error: _error_ });
+    app.get("/v1/image/list", CommonLimiter, RejectNotLoggedIn, async (req: Request, res: Response) => {
+        const { _error_ } = CheckJSONProperties([], req);
+        if (_error_) return res.json({ error: _error_ });
         const session = req.session as any;
         const user_id = session.user.user_id;
         const is_administrator = session.user.is_administrator;
@@ -79,8 +79,9 @@ export default async (context: MainContext) => {
         }
     });
 
-    app.post('/v1/image/publish', ApiLimiter, RejectNotLoggedIn, async (req: Request, res: Response) => {
-        const { _error_, image_id, publish } = CheckJSONProperties(["image_id", "publish"], req); if (_error_) return res.json({ error: _error_ });
+    app.post("/v1/image/publish", ApiLimiter, RejectNotLoggedIn, async (req: Request, res: Response) => {
+        const { _error_, image_id, publish } = CheckJSONProperties(["image_id", "publish"], req);
+        if (_error_) return res.json({ error: _error_ });
         const session = req.session as any;
         const user_id = session.user.user_id;
         const is_administrator = session.user.is_administrator;
@@ -90,8 +91,8 @@ export default async (context: MainContext) => {
                 const data = await ORM.image.update({
                     where: { id: image_id },
                     data: {
-                        published: publish
-                    }
+                        published: publish,
+                    },
                 });
                 logger.log(data, await ORM.image.findUnique({ where: { id: image_id } }));
                 res.json({ error: null, data: data });
@@ -112,12 +113,13 @@ export default async (context: MainContext) => {
         return false;
     }
 
-    app.post('/v1/image/fetch', ApiLimiter, RejectNotLoggedIn, async (req: Request, res: Response) => {
-        const { _error_, node_id, url } = CheckJSONProperties(["node_id", "url"], req); if (_error_) return res.json({ error: _error_ });
+    app.post("/v1/image/fetch", ApiLimiter, RejectNotLoggedIn, async (req: Request, res: Response) => {
+        const { _error_, node_id, url } = CheckJSONProperties(["node_id", "url"], req);
+        if (_error_) return res.json({ error: _error_ });
         const session = req.session as any;
         const user_id = session.user.user_id;
         try {
-            if (!await is_allowed_node(node_id, user_id)) return res.json({ error: `Permission defined or already exists image [INs16aZAOc]` });
+            if (!(await is_allowed_node(node_id, user_id))) return res.json({ error: `Permission defined or already exists image [INs16aZAOc]` });
 
             const previous = await ORM.image.findFirst({ where: { node_id: node_id, url: url } });
             if (previous == null) {
@@ -184,7 +186,6 @@ export default async (context: MainContext) => {
                                     await ORM.image.delete({ where: { id: init_image.id } });
                                     logger.log("Delete:", init_managed_image.id);
                                     await ORM.managed_image.delete({ where: { id: init_managed_image.id } });
-
                                 }
                                 const query = already_exists_same_hash_key_image ? { id: init_image.id } : { node_id: node_id, key: result.key };
                                 logger.log(query);
@@ -209,7 +210,7 @@ export default async (context: MainContext) => {
                                     user_id: user_id,
                                     node_id: node_id,
                                     image_id: image02.id,
-                                }
+                                };
                                 if (managed_image02) {
                                     await ORM.managed_image.update({ where: { id: managed_image02.id }, data: managed_iamge02_update });
                                 } else {
@@ -234,16 +235,18 @@ export default async (context: MainContext) => {
         }
     });
 
-    app.post('/v1/image/save', ApiLimiter, RejectNotLoggedIn, async (req: Request, res: Response) => {
-        const { _error_, any } = CheckJSONProperties(["any"], req); if (_error_) return res.json({ error: _error_ });
+    app.post("/v1/image/save", ApiLimiter, RejectNotLoggedIn, async (req: Request, res: Response) => {
+        const { _error_, any } = CheckJSONProperties(["any"], req);
+        if (_error_) return res.json({ error: _error_ });
         const session = req.session as any;
         const user_id = session.user.user_id;
         // TODO: Request to computing node
         res.json({ error: null, data: {} });
     });
 
-    app.post('/v1/image/delete', ApiLimiter, RejectNotLoggedIn, async (req: Request, res: Response) => {
-        const { _error_, image_id, force } = CheckJSONProperties(["image_id", { key: "force", nullable: true }], req); if (_error_) return res.json({ error: _error_ });
+    app.post("/v1/image/delete", ApiLimiter, RejectNotLoggedIn, async (req: Request, res: Response) => {
+        const { _error_, image_id, force } = CheckJSONProperties(["image_id", { key: "force", nullable: true }], req);
+        if (_error_) return res.json({ error: _error_ });
         const session = req.session as any;
         const user_id = session.user.user_id;
         const is_administrator = session.user.is_administrator;
@@ -299,4 +302,4 @@ export default async (context: MainContext) => {
             res.json({ error: "Internal Server Error [cYLYXFJJ0D]" });
         }
     });
-}
+};

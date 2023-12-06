@@ -131,18 +131,19 @@ Unfortunately, windows platform is still required VM or WSL.
   },
   "IPv4_CheckURL": "https://api.ipify.org",
   "IPv6_CheckURL": "https://api64.ipify.org",
-
   "use_ipv4": true,
   "use_ipv6": false,
   "ipv4_ports": {
     "range01": {
       "protocol": "tcp",
-      "range": [63000, 63030]
+      "range": [
+        63000,
+        63030
+      ]
     }
   },
   "ipv6_ports": {}
 }
-
 ```
 
 1. Download binary from [https://d3w.app/bin/](https://d3w.app/bin/) and add exec permission.

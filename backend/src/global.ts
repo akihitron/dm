@@ -1,7 +1,7 @@
-import crypto from 'crypto';
-import session from 'express-session';
-import { spawn } from 'child_process';
-import express, { Express, Request, Response, NextFunction } from 'express';
+import crypto from "crypto";
+import session from "express-session";
+import { spawn } from "child_process";
+import express, { Express, Request, Response, NextFunction } from "express";
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 // Application Args
@@ -9,7 +9,7 @@ export class AppParams {
     app_name = "unknown";
     server_name = "Server";
     worker = { id: 1 };
-    port:number | null = null;
+    port: number | null = null;
 
     init = {
         session_store: true,
@@ -21,37 +21,38 @@ export class AppParams {
 // Main Context
 export class MainContext {
     worker_id = -1;
-    app: Express|null = null;
+    app: Express | null = null;
     config: any = null;
     db: any = null;
     port: number = 3050;
     model: any = null;
     local_ipv4s: string[] = [];
-    close = () => { };
+    close = () => {};
     email: string | null = null;
     message_adapter: any = null;
     session_store: any = new session.MemoryStore();
     limiters: any = {};
     sub_apis: any = {};
-    clear_sessions: ()=>void = ()=>{};
+    clear_sessions: () => void = () => {};
 }
 
 export function GenerateUUID() {
     return crypto.randomUUID().replace(/-/g, "");
 }
 
-
-export function HashPassword(password:string, salt:string, algo:string = 'sha3-256') {
+export function HashPassword(password: string, salt: string, algo: string = "sha3-256") {
     const hash = crypto.createHmac(algo, salt);
     hash.update(password);
-    const value = hash.digest('hex');
+    const value = hash.digest("hex");
     return value;
 }
 
-export function GenerateSalt(length:number=64) {
-    return crypto.randomBytes(Math.ceil(length / 2)).toString('hex').slice(0, length);
+export function GenerateSalt(length: number = 64) {
+    return crypto
+        .randomBytes(Math.ceil(length / 2))
+        .toString("hex")
+        .slice(0, length);
 }
-
 
 export function RejectNotLoggedIn(req: Request, res: Response, next: NextFunction) {
     const session = req.session as any;
@@ -59,29 +60,35 @@ export function RejectNotLoggedIn(req: Request, res: Response, next: NextFunctio
     session.views = session.views == null ? 1 : session.views + 1; // Update maxAge
     session.touch(); // Update maxAge
     next();
-};
+}
+
+export function RejectNotLoggedInForWS(ws: WebSocket, req: Request, next: NextFunction) {
+    const session = req.session as any;
+    if (session?.user?.hash == null) return ws.close(1000, "The session has already expired or does not exist account.");
+    session.views = session.views == null ? 1 : session.views + 1; // Update maxAge
+    session.touch(); // Update maxAge
+    next();
+}
 
 export function RejectAPIKeyLoggedIn(req: Request, res: Response, next: NextFunction) {
     const session = req.session as any;
     if (session.user.is_api_key_session) return res.json({ error: "Permission denied." });
     next();
-};
+}
 
 export function CheckAdmin(req: Request, res: Response, next: NextFunction) {
     const session = req.session as any;
     if (session?.user?.is_administrator != true) return res.json({ error: "Permission denied." });
     next();
-};
-
-
+}
 
 export async function s_exe_s(command: string) {
     return new Promise((resolve, reject) => {
-        const child = spawn(command, {stdio: 'inherit', shell: true});
-        child.on('close', (code) => {
+        const child = spawn(command, { stdio: "inherit", shell: true });
+        child.on("close", (code) => {
             if (code != 0) {
                 console.log(`Child process exited with code ${code}`);
-            } 
+            }
             resolve(code);
         });
     });
@@ -89,20 +96,18 @@ export async function s_exe_s(command: string) {
 
 export async function s_exe(command: string, args: Array<string>) {
     return new Promise((resolve, reject) => {
-        const child = spawn(command, args, {stdio: 'inherit'});
-        child.on('close', (code) => {
+        const child = spawn(command, args, { stdio: "inherit" });
+        child.on("close", (code) => {
             if (code != 0) {
                 console.log(`Child process exited with code ${code}`);
-            } 
+            }
             resolve(code);
         });
     });
 }
-    
-
 
 // TODO: Recursive check and check total length.
-export function CheckJSONProperties(args: Array<string|any>, req: Request) {
+export function CheckJSONProperties(args: Array<string | any>, req: Request) {
     const json = req.body;
     const lacked_props = [];
     const ret: any = {};
@@ -154,34 +159,42 @@ export class Event {
     // callback: undefined|(event:Event)=>void = undefined;
 }
 
+export class Channel {
+    channel_id: string | null = null;
+    left_queue: Array<any> = [];
+    right_queue: Array<any> = [];
+    last_updated: number = Date.now();
+}
+
 export class Node {
     node_id: string | null = null;
     event_table: Map<string, Event> = new Map();
+
+    channel_table: Map<string, Channel> = new Map();
+
+    
 
     connector: any = null;
 
     last_updated: number = Date.now();
     status: string = "Unknown";
 
-    send_queue:Array<any> = [];
+    send_queue: Array<any> = [];
 
-
-
-
-    send(params:any, callback:any) {
+    send(params: any, callback: any) {
         const event = new Event();
         event.request_data = params;
         event.callback = callback;
-        const ev = {request_id:event.request_id, data:event.request_data};
+        const ev = { request_id: event.request_id, data: event.request_data };
         if (this.connector) {
-            this.connector.send({events:[ev]}); // {method:"list_image", params:{}}
+            this.connector.send({ events: [ev] }); // {method:"list_image", params:{}}
         } else {
             this.send_queue.push(ev);
         }
         this.event_table.set(event.request_id, event);
     }
 
-    send_and_wait(message:any) : Promise<Event> {
+    send_and_wait(message: any): Promise<Event> {
         return new Promise((resolve, reject) => {
             this.send(message, async (event: Event) => {
                 resolve(event);
@@ -202,9 +215,9 @@ export class Node {
     }
 
     update() {
-        if (this.connector && this.send_queue.length>0) {
+        if (this.connector && this.send_queue.length > 0) {
             this.send_queue = [];
-            this.connector.send({events:this.send_queue});
+            this.connector.send({ events: this.send_queue });
             this.connector = null;
             this.last_updated = Date.now();
         }

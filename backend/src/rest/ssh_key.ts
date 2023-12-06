@@ -1,8 +1,7 @@
-import express, { Express, Request, Response, NextFunction } from 'express';
+import express, { Express, Request, Response, NextFunction } from "express";
 import { AppParams, MainContext, RejectNotLoggedIn, CheckAdmin, Node, Event, CheckJSONProperties } from "../global";
-import logger from '../logger';
-import { PrismaClient } from '@prisma/client';
-
+import logger from "../logger";
+import { PrismaClient } from "@prisma/client";
 
 export default async (context: MainContext) => {
     const app = context.app as Express;
@@ -11,8 +10,9 @@ export default async (context: MainContext) => {
     const ApiLimiter = context.limiters.ApiLimiter;
     const SensitiveLimiter = context.limiters.SensitiveLimiter;
 
-    app.post('/v1/ssh/register', ApiLimiter, RejectNotLoggedIn, async (req: Request, res: Response) => {
-        const { _error_, name, key } = CheckJSONProperties(["name", { key: "key", max_length: 4096 }], req); if (_error_) return res.json({ error: _error_ });
+    app.post("/v1/ssh/register", ApiLimiter, RejectNotLoggedIn, async (req: Request, res: Response) => {
+        const { _error_, name, key } = CheckJSONProperties(["name", { key: "key", max_length: 4096 }], req);
+        if (_error_) return res.json({ error: _error_ });
         const session = req.session as any;
         const user_id = session.user.user_id;
         try {
@@ -20,7 +20,7 @@ export default async (context: MainContext) => {
             if (exists.length > 0) {
                 res.json({ error: "Already exists public key. [sfEWUlDRlM]" });
             } else {
-                const ret = await ORM.ssh_key.create({data:{ name, key, user_id }});
+                const ret = await ORM.ssh_key.create({ data: { name, key, user_id } });
                 res.json({ error: null, data: ret });
             }
         } catch (e) {
@@ -29,11 +29,12 @@ export default async (context: MainContext) => {
         }
     });
 
-    app.post('/v1/ssh/delete', ApiLimiter, RejectNotLoggedIn, async (req: Request, res: Response) => {
-        const { _error_, id } = CheckJSONProperties(["id"], req); if (_error_) return res.json({ error: _error_ });
+    app.post("/v1/ssh/delete", ApiLimiter, RejectNotLoggedIn, async (req: Request, res: Response) => {
+        const { _error_, id } = CheckJSONProperties(["id"], req);
+        if (_error_) return res.json({ error: _error_ });
         const user_id = (req.session as any).user.user_id;
         try {
-            const data = await ORM.ssh_key.deleteMany({where:{id:id, user_id:user_id}});
+            const data = await ORM.ssh_key.deleteMany({ where: { id: id, user_id: user_id } });
             res.json({ error: null, data: data });
         } catch (e) {
             logger.error(e);
@@ -41,17 +42,17 @@ export default async (context: MainContext) => {
         }
     });
 
-    app.get('/v1/ssh/list', RejectNotLoggedIn, async (req: Request, res: Response) => {
-        const { _error_ } = CheckJSONProperties([], req); if (_error_) return res.json({ error: _error_ });
+    app.get("/v1/ssh/list", RejectNotLoggedIn, async (req: Request, res: Response) => {
+        const { _error_ } = CheckJSONProperties([], req);
+        if (_error_) return res.json({ error: _error_ });
         const user_id = (req.session as any).user.user_id;
 
         try {
-            const data = await ORM.ssh_key.findMany({ where:{user_id:user_id} });
+            const data = await ORM.ssh_key.findMany({ where: { user_id: user_id } });
             res.json({ error: null, data: data });
         } catch (e) {
             logger.error(e);
             res.json({ error: "Internal Server Error [iRw615skrH]" });
         }
     });
-
-}
+};

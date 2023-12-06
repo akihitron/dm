@@ -1,15 +1,14 @@
 import fs from "fs";
+import os from "os";
 import path from "path";
-import express, { Express, Request, Response } from 'express';
+import express, { Express, Request, Response } from "express";
 import session from "express-session";
 import morgan from "morgan";
-import WebSocket from "ws";
 import expressWs from "express-ws";
-import * as os from 'node:os';
 
 import showdown from "showdown";
 import configure from "./setup";
-import { createStream } from 'rotating-file-stream';
+import { createStream } from "rotating-file-stream";
 import { AppParams, GenerateSalt, HashPassword, MainContext } from "./global";
 import ComputeNodeAPI from "./rest/compute_node";
 import ImageAPI from "./rest/image";
@@ -21,21 +20,24 @@ import { PrismaClient } from "@prisma/client";
 import logger from "./logger";
 import cors from "cors";
 
-import * as nodePty from "node-pty";
-
-
 const APP_NAME = "dmb";
 const APP_VERSION = "0.8.0";
+const SIGTERM_FUNCS:Array<Function> = [];
+process.on('SIGTERM', () => {
+    logger.error('SIGTERM signal received.');
+    for (const func of SIGTERM_FUNCS) func();
+    process.exit(0);
+});
 
 ///////////////////////////////////////////////////////////////////////////////////////
-// Custom session user definition => res.session.user = {} 
-declare module 'express-session' {
+// Custom session user definition => res.session.user = {}
+declare module "express-session" {
     export interface SessionData {
         user: { [key: string]: any };
     }
 }
 
-function ConvertMarkdownToHTML(params: AppParams) {
+function ConvertMarkdownToHTML(params: AppParams, app: Express) {
     // For development document.
     // http://localhost:3050
     const DEST_README_MD = path.join(__dirname, "../../README.md");
@@ -46,7 +48,7 @@ function ConvertMarkdownToHTML(params: AppParams) {
     const MODEL_PATH = path.join(__dirname, "../prisma/schema.prisma");
     function check_file(f_path: string) {
         const ret = fs.existsSync(f_path);
-        if (!ret) logger.error("File not found:", f_path);
+        if (!ret && process.env.NODE_ENV == "development") logger.error("File not found:", f_path);
         return ret;
     }
     logger.log(check_file(C_TEMPLATE_CONFIG_PATH), check_file(B_TEMPLATE_CONFIG_PATH) && check_file(README1_PATH), check_file(README2_PATH), check_file(MODEL_PATH));
@@ -56,11 +58,13 @@ function ConvertMarkdownToHTML(params: AppParams) {
         const c_template_json = fs.readFileSync(C_TEMPLATE_CONFIG_PATH).toString("utf8");
         const HEAD = fs.readFileSync(README2_PATH).toString("utf8");
         const MODEL_DEF = fs.readFileSync(MODEL_PATH).toString("utf8");
-        const MD = fs.readFileSync(README1_PATH).toString("utf8").
-            replace("${backend.config.json}", b_template_json).
-            replace("${compute_node.config.json}", c_template_json).
-            replace("${model_def}", MODEL_DEF).
-            replace(/\${app_name}/g, params.app_name);
+        const MD = fs
+            .readFileSync(README1_PATH)
+            .toString("utf8")
+            .replace("${backend.config.json}", b_template_json)
+            .replace("${compute_node.config.json}", c_template_json)
+            .replace("${model_def}", MODEL_DEF)
+            .replace(/\${app_name}/g, params.app_name);
         fs.writeFileSync(DEST_README_MD, MD);
         const DOCUMENT = `<!DOCTYPE html>
         <html>
@@ -78,27 +82,21 @@ function ConvertMarkdownToHTML(params: AppParams) {
     return "";
 }
 
-
 ////////////////////////////////////////////////////////////////////////////////////
 // Main Proc
 async function main(params: AppParams) {
-
-
     const app_name = APP_NAME;
     params.server_name = `${app_name} server`;
     params.app_name = app_name;
 
-    const TOP_DOCUMENT = ConvertMarkdownToHTML(params);
     const context: MainContext = await configure(params);
     const ORM = context.model as PrismaClient;
-
-
-
 
     //////////////////////////////////////////////////////////////////////////////
     // Create express app
     const app: Express = express();
     context.app = app;
+    const TOP_DOCUMENT = ConvertMarkdownToHTML(params, app);
 
     // CORS
     if (false) {
@@ -113,92 +111,21 @@ async function main(params: AppParams) {
     //////////////////////////////////////////////////////////////////////////////
     // WebSocket
     expressWs(app);
-    {
-        const app_ws = app as any;
-        app_ws.ws('/ws', (ws: WebSocket, req: express.Request, next: express.NextFunction) => {
-            // WebSocket接続が確立されたときの処理
-            ws.binaryType = "arraybuffer";
-            logger.log("Start");
-
-            const shell = os.platform() === 'win32' ? 'powershell.exe' : 'bash';
-
-
-            try {
-
-                let pty = nodePty.spawn(shell, [], {
-                    name: 'xterm-color',
-                    cols: 80,
-                    rows: 30,
-                    cwd: process.env.HOME,
-                    env: process.env
-                });
-
-
-                logger.log("Start1");
-                pty.onData((data) => {
-                    // logger.log('WebSocket message(S):', data);
-                    const obj = { event: "term", data: data };
-                    ws.send(JSON.stringify(obj));
-                });
-
-                console.log('WebSocket connected');
-                ws.on('message', (message) => {
-                    try {
-                        if (typeof message === "string") {
-                            const obj = JSON.parse(message);
-                            if (obj.event == "term") {
-                                pty.write(obj.data);
-                            } else if (obj.event == "resize") {
-                                // pty.write(obj.data);
-                                pty.resize(obj.cols, obj.rows);
-                            }
-                        } else {
-                            logger.error("Unknown message type:", typeof message);
-                        }
-                    } catch (e) {
-                        logger.error(e);
-                    }
-                });
-
-                ws.on('close', () => {
-                    // WebSocket接続が閉じられたときの処理
-                    console.log('WebSocket closed');
-                });
-            } catch (e) {
-                logger.error(e);
-
-            }
-
-
-
-
-        });
-    }
-
-
-
-    // const server = new http.Server(app);
-    // const wss = new WebSocket.Server({ server });
-
-    // server.listen(process.env.PORT || 8999, () => {
-    //     console.log(`Server started on port`);
-    //   });
-
-
 
     //////////////////////////////////////////////////////////////////////////////
     // HTTP access logger and live reloader
     // "combined": Apache standard combined log
     // "short": tiny log.
-    logger.info(app.get('env'));
-    if (app.get('env') != 'development') {
-        const logDirectory = path.join(__dirname, './log');
+    logger.info(app.get("env"), process.env.NODE_ENV,  process.env.NODE_ENV == "development");
+    if (process.env.NODE_ENV != "development") {
+        // if (app.get("env") != "development") {
+            const logDirectory = path.join(__dirname, "./log");
         fs.existsSync(logDirectory) || fs.mkdirSync(logDirectory);
-        const accessLogStream = createStream('access.log', {
-            size: '10MB',
-            interval: '10d',
-            compress: 'gzip',
-            path: logDirectory
+        const accessLogStream = createStream("access.log", {
+            size: "10MB",
+            interval: "10d",
+            compress: "gzip",
+            path: logDirectory,
         });
         app.use(morgan("combined", { stream: accessLogStream }));
         context.port = 3150;
@@ -216,16 +143,16 @@ async function main(params: AppParams) {
         });
         app.use(connectLiveReload());
         context.port = 3050;
+
+        SIGTERM_FUNCS.push(() => liveReloadServer.close());
     }
-
-
 
     //////////////////////////////////////////////////////////////////////////////
     // Create default users in development mode.
-    if (app.get('env') != 'production') {
+    if (app.get("env") != "production") {
         for (const default_user of context.config.default_users) {
             const salt = GenerateSalt(64);
-            const hash = HashPassword(default_user.password, salt, 'sha3-256');
+            const hash = HashPassword(default_user.password, salt, "sha3-256");
             const update = {
                 email: default_user.email,
                 password_hash: hash,
@@ -242,7 +169,6 @@ async function main(params: AppParams) {
     }
 
     logger.log("Server start");
-
 
     //////////////////////////////////////////////////////////////////////////////
     // Session store
@@ -271,22 +197,26 @@ async function main(params: AppParams) {
     // Browser => LoadBalancer => Express
     // Browser => Vite => Express
     // app.set('trust proxy', 'loopback') // trust first proxy
-    app.set('trust proxy', true) // trust first proxy
+    app.set("trust proxy", true); // trust first proxy
 
     //////////////////////////////////////////////////////////////////////////////
     // Session/JSON/URL/Static
     app.use(session(session_configuration));
     app.use(express.json()); // Json body/response
     app.use(express.urlencoded({ extended: true })); // ?key1=value1&key2=value2 ...
-    app.use(express.static(path.join(__dirname, 'public')))
-
+    app.use(express.static(path.join(__dirname, "public")));
 
     //////////////////////////////////////////////////////////////////////////////
     // Allow proxy access
-    app.get('/', context.limiters.CommonLimiter, (req: Request, res: Response) => { res.send(TOP_DOCUMENT) });
-    app.all('/v1/common/version', context.limiters.CommonLimiter, async (req: Request, res: Response) => { res.json({ error: null, version: APP_VERSION }); });
-    app.all('/v1/common/heartbeat', context.limiters.CommonLimiter, async (req: Request, res: Response) => { res.json({ error: null, data: {} }); });
-
+    app.get("/", context.limiters.CommonLimiter, (req: Request, res: Response) => {
+        res.send(TOP_DOCUMENT);
+    });
+    app.all("/v1/common/version", context.limiters.CommonLimiter, async (req: Request, res: Response) => {
+        res.json({ error: null, version: APP_VERSION });
+    });
+    app.all("/v1/common/heartbeat", context.limiters.CommonLimiter, async (req: Request, res: Response) => {
+        res.json({ error: null, data: {} });
+    });
 
     // Register Rest APIs
     await UserAPI(context);
@@ -304,14 +234,31 @@ async function main(params: AppParams) {
     // Listen
     const prefix = params.app_name;
     const port = params.port ?? context.port;
-    app.listen(port, () => { logger.log(`Server Listen(HTTP1.1): ${port}\n    ${context.local_ipv4s.map((s: string) => "http://" + s + ":" + port + "/").join("    \n    ")}`) })
+    const server = app.listen(port, () => {
+        logger.log(`Server Listen(HTTP1.1): ${port}\n    ${context.local_ipv4s.map((s: string) => "http://" + s + ":" + port + "/").join("    \n    ")}`);
+    });
+    SIGTERM_FUNCS.push(() => server.close());
 }
-
-
 
 //////////////////////////////////////////////////////////////////////////////////////
 // Single thread
 const app_params = new AppParams();
+if (true) {
+    const PORT = 48572; // TODO: Change to more smart way.
+    const server = require("http").createServer();
+    server.listen(PORT, "127.0.0.1");
+    server.on("error", (error: any) => {
+        if (error.code === "EADDRINUSE") {
+            logger.error("");
+            logger.error("Detected duplicate process.");
+            logger.error("");
+            logger.error("Exit...\n\n\n\n");
+            process.exit(1);
+        } else {
+            logger.error("An error occurred:", error.message);
+        }
+    });
+}
 main(app_params);
 
 //////////////////////////////////////////////////////////////////////////////////////

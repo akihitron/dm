@@ -1,9 +1,12 @@
 import express, { Express, Request, Response, NextFunction } from 'express';
-import { AppParams, MainContext, RejectNotLoggedIn, CheckAdmin, Node, Event, CheckJSONProperties } from "../global";
+import { AppParams, MainContext, RejectNotLoggedIn, CheckAdmin, Node, Event, CheckJSONProperties, RejectNotLoggedInForWS } from "../global";
 import { randomUUID } from 'crypto';
 import logger from '../logger';
 import { PrismaClient } from '@prisma/client';
 export const NodeTable: Map<string, Node | undefined | null> = new Map();
+
+import WebSocket from "ws";
+
 
 export default async (context: MainContext) => {
     const app = context.app as Express;
@@ -110,7 +113,7 @@ export default async (context: MainContext) => {
             const query = { id: node_id };
             const update01 = {
                 name, use_ipv4, use_ipv6, ipv4, ipv6, platform, arch, cpu, cpu_info, memory: memory,
-                total_storage:total_storage, free_storage: free_storage,
+                total_storage: total_storage, free_storage: free_storage,
                 gpu, gpu_info, gpu_driver, nvidia_docker, manipulator_driver,
                 user_id: user_id, available_as_gpu_node: nvidia_docker && gpu,
                 status: "ACTIVATED",
@@ -118,7 +121,7 @@ export default async (context: MainContext) => {
                 updated_at: new Date(),
             };
             logger.log(update01);
-            const updated_node = await ORM.compute_node.update({ where: query, data: update01});
+            const updated_node = await ORM.compute_node.update({ where: query, data: update01 });
 
             logger.log("Upsert native images");
             // Native images to database
@@ -140,7 +143,7 @@ export default async (context: MainContext) => {
                     published: img?.published == null ? false : img?.published,
                 }
                 if (img) {
-                    await ORM.image.update({ where: { id:img.id }, data: update02 });
+                    await ORM.image.update({ where: { id: img.id }, data: update02 });
                 } else {
                     await ORM.image.create({ data: update02 });
                 }
@@ -172,7 +175,7 @@ export default async (context: MainContext) => {
                     }
                 }
             }
-            image_id_to_image_table.forEach(async (image:any, image_id:string) => {
+            image_id_to_image_table.forEach(async (image: any, image_id: string) => {
                 logger.warn("Delete:", image.name);
                 await ORM.image.delete({ where: { id: image.id } });
             });
@@ -198,7 +201,7 @@ export default async (context: MainContext) => {
                     image_id: image_key_to_image_table.get(instance.image?.key)?.id,
                 }
                 const ins = await ORM.instance.upsert({ where: { key: instance.key }, update: update03, create: update03 });
-                logger.warn(updated_node.name.slice(0,10).padEnd(10), ins.name?.slice(0, 10).padEnd(10), ins.base_image?.slice(0, 10).padEnd(10),instance.key.slice(-10), ins.id.slice(-8));
+                logger.warn(updated_node.name.slice(0, 10).padEnd(10), ins.name?.slice(0, 10).padEnd(10), ins.base_image?.slice(0, 10).padEnd(10), instance.key.slice(-10), ins.id.slice(-8));
                 db_instance_table.set(instance.key, ins.id);
             }
 
@@ -336,6 +339,111 @@ export default async (context: MainContext) => {
                 res.json({ error: "Internal Server Error [aoTM3wxOCU]" });
             }
         });
+        const app_ws = app as any;
+        app_ws.ws('/ws', RejectNotLoggedInForWS, (ws: WebSocket, req: Request, next: NextFunction) => {
+            ws.binaryType = "arraybuffer";
+            try {
+                const user = req.session.user;
+                const email = user?.email;
+                const user_id = user?.user_id;
+
+                // Duplex
+                // Validation check.
+
+
+                // const obj = { event: "term", data: data };
+                // ws.send(JSON.stringify(obj));
+                console.log('WebSocket connected:', email, user_id);
+                ws.on('message', (message) => {
+                    try {
+                        if (typeof message === "string") {
+                            const obj = JSON.parse(message);
+                            const node_id = obj.node_id;
+                            const node = NodeTable.get(node_id);
+                            if (node) {
+                                if (obj.event == "term") {
+                                    // pty.write(obj.data);
+
+                                } else if (obj.event == "resize") {
+                                } else if (obj.event == "open") {
+                                    logger.success(obj);
+                                } else if (obj.event == "attach") {
+                                    // pty.write(obj.data);
+                                    // pty.resize(obj.cols, obj.rows);
+                                } else {
+                                    logger.error("WS:Unknown message:", obj);
+                                }
+                            } else {
+                                logger.warn("WS:Not ready:", node_id, "from", email, user_id, message);
+                            }
+                        } else {
+                            logger.error("WS:Unknown message type:", typeof message);
+                        }
+                    } catch (e) {
+                        logger.error(e);
+                    }
+                });
+
+                ws.on('close', () => {
+                    console.log('WS:WebSocket closed:', email, user_id);
+                });
+            } catch (e) {
+                logger.error(e);
+            }
+        });
+
+
+        // import * as nodePty from "node-pty";
+
+        // const app_ws = app as any;
+        // app_ws.ws('/ws', (ws: WebSocket, req: express.Request, next: express.NextFunction) => {
+        //     ws.binaryType = "arraybuffer";
+        //     logger.log("Start");
+        //     try {
+
+        //         let pty = nodePty.spawn(os.platform() === 'win32' ? 'powershell.exe' : 'bash', [], {
+        //             name: 'xterm-color',
+        //             cols: 80,
+        //             rows: 30,
+        //             cwd: process.env.HOME,
+        //             env: process.env
+        //         });
+
+
+        //         logger.log("Start1");
+        //         pty.onData((data) => {
+        //             // logger.log('WebSocket message(S):', data);
+        //             const obj = { event: "term", data: data };
+        //             ws.send(JSON.stringify(obj));
+        //         });
+
+        //         console.log('WebSocket connected');
+        //         ws.on('message', (message) => {
+        //             try {
+        //                 if (typeof message === "string") {
+        //                     const obj = JSON.parse(message);
+        //                     if (obj.event == "term") {
+        //                         pty.write(obj.data);
+        //                     } else if (obj.event == "resize") {
+        //                         // pty.write(obj.data);
+        //                         pty.resize(obj.cols, obj.rows);
+        //                     }
+        //                 } else {
+        //                     logger.error("Unknown message type:", typeof message);
+        //                 }
+        //             } catch (e) {
+        //                 logger.error(e);
+        //             }
+        //         });
+
+        //         ws.on('close', () => {
+        //             // WebSocket接続が閉じられたときの処理
+        //             console.log('WebSocket closed');
+        //         });
+        //     } catch (e) {
+        //         logger.error(e);
+        //     }
+        // });
     }
 
 }

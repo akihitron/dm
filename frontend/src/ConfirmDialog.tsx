@@ -15,22 +15,22 @@ export default function ConfirmDialog(prop: any) {
 	const open = prop.open;
 	const setOpen = prop.setOpen;
 	const onSubmit = prop.onSubmit;
-	
+
 	return (
 		<Dialog
 			open={open}
-			onClose={()=>{setOpen(false)}}
+			onClose={() => { setOpen(false) }}
 			aria-labelledby="generic-alert-dialog-title"
 			aria-describedby="generic-alert-dialog-description"
-			sx={{width:"100%"}}
+			sx={{ width: "100%" }}
 		>
 			<DialogTitle id="generic-alert-dialog-title">{title}</DialogTitle>
-			<DialogContent sx={{minWidth:300}}>
-				<DialogContentText id="generic-alert-dialog-description" sx={{whiteSpace:"pre-wrap"}}>{message}</DialogContentText>
+			<DialogContent sx={{ minWidth: 300 }}>
+				<DialogContentText id="generic-alert-dialog-description" sx={{ whiteSpace: "pre-wrap" }}>{message}</DialogContentText>
 			</DialogContent>
 			<DialogActions>
-				{no_cancel?<></>:<Button onClick={() => { setOpen(false);onSubmit(false); }} autoFocus>{negative}</Button>}
-				<Button onClick={() => { setOpen(false);onSubmit(true); }}>{positive}</Button>
+				{no_cancel ? <></> : <Button onClick={() => { setOpen(false); onSubmit(false); }} autoFocus>{negative}</Button>}
+				<Button onClick={() => { setOpen(false); onSubmit(true); }}>{positive}</Button>
 			</DialogActions>
 		</Dialog>
 	);

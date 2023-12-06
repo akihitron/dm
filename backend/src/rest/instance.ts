@@ -1,9 +1,8 @@
-import express, { Express, Request, Response, NextFunction } from 'express';
+import express, { Express, Request, Response, NextFunction } from "express";
 import { AppParams, MainContext, RejectNotLoggedIn, CheckAdmin, Node, Event, CheckJSONProperties } from "../global";
-import { NodeTable } from './compute_node';
-import logger from '../logger';
-import { PrismaClient } from '@prisma/client';
-
+import { NodeTable } from "./compute_node";
+import logger from "../logger";
+import { PrismaClient } from "@prisma/client";
 
 export default async (context: MainContext) => {
     const app = context.app as Express;
@@ -44,7 +43,6 @@ export default async (context: MainContext) => {
                 mp.ipv6[protocol].add(port);
                 // logger.warn(mp, p,mp.ipv4[protocol].has(port));
             }
-
         }
         return table;
     }
@@ -52,22 +50,24 @@ export default async (context: MainContext) => {
         const ret = {
             ipv4: {
                 tcp: [] as Array<Array<number>>,
-                udp: [] as Array<Array<number>>
+                udp: [] as Array<Array<number>>,
             },
             ipv6: {
                 tcp: [] as Array<Array<number>>,
-                udp: [] as Array<Array<number>>
+                udp: [] as Array<Array<number>>,
             },
         };
         if (n.use_ipv4) {
             const ip_ports = JSON.parse(n.ipv4_ports);
-            const available_ranges = []; for (const k in ip_ports) available_ranges.push(ip_ports[k]);
+            const available_ranges = [];
+            for (const k in ip_ports) available_ranges.push(ip_ports[k]);
             available_ranges.filter((u: any) => u.protocol == "tcp").forEach((u: any) => ret.ipv4.tcp.push(u.range));
             available_ranges.filter((u: any) => u.protocol == "udp").forEach((u: any) => ret.ipv4.udp.push(u.range));
         }
         if (n.use_ipv6) {
             const ip_ports = JSON.parse(n.ipv6_ports);
-            const available_ranges = []; for (const k in ip_ports) available_ranges.push(ip_ports[k]);
+            const available_ranges = [];
+            for (const k in ip_ports) available_ranges.push(ip_ports[k]);
             available_ranges.filter((u: any) => u.protocol == "tcp").forEach((u: any) => ret.ipv6.tcp.push(u.range));
             available_ranges.filter((u: any) => u.protocol == "udp").forEach((u: any) => ret.ipv6.udp.push(u.range));
         }
@@ -88,30 +88,9 @@ export default async (context: MainContext) => {
         return false;
     }
 
-
-    app.post('/v1/instance/create', ApiLimiter, RejectNotLoggedIn, async (req: Request, res: Response) => {
-        const { _error_,
-            instance_name,
-            node_id,
-            image_id,
-            accelerator,
-            cpu,
-            memory,
-            storage,
-            network_mode,
-            params
-        } = CheckJSONProperties([
-            "instance_name",
-            "node_id",
-            "image_id",
-            "accelerator",
-            { key: "cpu", nullable: true },
-            { key: "memory", nullable: true },
-            { key: "storage", nullable: true },
-            { key: "network_mode", nullable: true },
-
-            "params"
-        ], req); if (_error_) return res.json({ error: _error_ });
+    app.post("/v1/instance/create", ApiLimiter, RejectNotLoggedIn, async (req: Request, res: Response) => {
+        const { _error_, instance_name, node_id, image_id, accelerator, cpu, memory, storage, network_mode, params } = CheckJSONProperties(["instance_name", "node_id", "image_id", "accelerator", { key: "cpu", nullable: true }, { key: "memory", nullable: true }, { key: "storage", nullable: true }, { key: "network_mode", nullable: true }, "params"], req);
+        if (_error_) return res.json({ error: _error_ });
 
         const session = req.session as any;
         const user_id = session.user.user_id;
@@ -124,7 +103,6 @@ export default async (context: MainContext) => {
         const reserved_ports = [];
         const reserved_port_map_records = [];
         try {
-
             // Check managed node or not.
             const own_node = await ORM.compute_node.findFirst({ where: { id: node_id, user_id: user_id } });
             const managed_node = await ORM.managed_compute_node.findFirst({ where: { node_id: node_id, user_id: user_id } });
@@ -156,9 +134,7 @@ export default async (context: MainContext) => {
 
             logger.log("Check image");
             const managed_image = await ORM.managed_image.findFirst({ where: { image_id: image_id, user_id: user_id } });
-            const image = managed_image ?
-                await ORM.image.findFirst({ where: { id: image_id } }) :
-                (own_node ? await ORM.image.findFirst({ where: { id: image_id, node_id: node_id } }) : await ORM.image.findFirst({ where: { id: image_id, node_id: node_id, published: true } }));
+            const image = managed_image ? await ORM.image.findFirst({ where: { id: image_id } }) : own_node ? await ORM.image.findFirst({ where: { id: image_id, node_id: node_id } }) : await ORM.image.findFirst({ where: { id: image_id, node_id: node_id, published: true } });
             if (!image) return res.json({ error: "Image does not exist. [uxcyccq7dy]" });
             if (image.node_id != node_id) return res.json({ error: "Mismatched node id. [18u7MR3vUv]" });
             if (image.key == null) return res.json({ error: "No image key. [MR3u7vUv18]" });
@@ -173,7 +149,7 @@ export default async (context: MainContext) => {
                     network_mode: network_mode,
                     name: instance_name,
                     node_id: node_id,
-                }
+                },
             });
 
             for (const port of reserved_ports) {
@@ -185,15 +161,14 @@ export default async (context: MainContext) => {
                         is_ipv4: true,
                         is_ipv6: false,
                         instance_id: instance.id,
-                    }
+                    },
                 });
                 reserved_port_map_records.push(port_map);
             }
 
-
-
             const event = await client.send_and_wait({
-                method: "create_instance", params: {
+                method: "create_instance",
+                params: {
                     name: instance_name,
                     image_key: image.key,
                     accelerator: accelerator, // driver name, cuda/rocm/cpu
@@ -212,8 +187,8 @@ export default async (context: MainContext) => {
                     params: {
                         command: "/bin/bash",
                         args: [],
-                    }
-                }
+                    },
+                },
             });
 
             const res_data = event.response_data;
@@ -246,7 +221,7 @@ export default async (context: MainContext) => {
                     logger.log(update_data);
                     instance = await ORM.instance.update({
                         where: { id: instance.id },
-                        data: update_data
+                        data: update_data,
                     });
 
                     const managed_instance = await ORM.managed_instance.create({
@@ -254,7 +229,7 @@ export default async (context: MainContext) => {
                             user_id: user_id,
                             node_id: node_id,
                             instance_id: instance.id,
-                        }
+                        },
                     });
                     logger.log(managed_instance);
                     res.json({ error: null, data: result, request_data: request_data });
@@ -273,29 +248,34 @@ export default async (context: MainContext) => {
             if (instance) {
                 try {
                     logger.warn(await ORM.instance.delete({ where: { id: instance.id } }));
-                } catch (e) { logger.error(e); }
+                } catch (e) {
+                    logger.error(e);
+                }
                 try {
                     logger.warn(await ORM.managed_instance.deleteMany({ where: { instance_id: instance.id } }));
-                } catch (e) { logger.error(e); }
+                } catch (e) {
+                    logger.error(e);
+                }
             }
             for (const port_map of reserved_port_map_records) {
                 try {
                     await ORM.port_map.delete({ where: { id: port_map.id } });
-                } catch (e) { logger.error(e); }
+                } catch (e) {
+                    logger.error(e);
+                }
             }
-
         }
-
     });
 
-    app.post('/v1/instance/status', CommonLimiter, RejectNotLoggedIn, async (req: Request, res: Response) => {
-        const { _error_, id } = CheckJSONProperties(["id"], req); if (_error_) return res.json({ error: _error_ });
+    app.post("/v1/instance/status", CommonLimiter, RejectNotLoggedIn, async (req: Request, res: Response) => {
+        const { _error_, id } = CheckJSONProperties(["id"], req);
+        if (_error_) return res.json({ error: _error_ });
         res.json({ error: "Not implemented yet." });
     });
 
-
-    app.post('/v1/instance/start', ApiLimiter, RejectNotLoggedIn, async (req: Request, res: Response) => {
-        const { _error_, instance_id, force } = CheckJSONProperties(["instance_id", { key: "force", nullable: true }], req); if (_error_) return res.json({ error: _error_ });
+    app.post("/v1/instance/start", ApiLimiter, RejectNotLoggedIn, async (req: Request, res: Response) => {
+        const { _error_, instance_id, force } = CheckJSONProperties(["instance_id", { key: "force", nullable: true }], req);
+        if (_error_) return res.json({ error: _error_ });
         const is_administrator = req.session?.user?.is_administrator; // Force
         const user_id = req.session?.user?.user_id;
 
@@ -339,8 +319,9 @@ export default async (context: MainContext) => {
         }
     });
 
-    app.post('/v1/instance/stop', ApiLimiter, RejectNotLoggedIn, async (req: Request, res: Response) => {
-        const { _error_, instance_id, force } = CheckJSONProperties(["instance_id", { key: "force", nullable: true }], req); if (_error_) return res.json({ error: _error_ });
+    app.post("/v1/instance/stop", ApiLimiter, RejectNotLoggedIn, async (req: Request, res: Response) => {
+        const { _error_, instance_id, force } = CheckJSONProperties(["instance_id", { key: "force", nullable: true }], req);
+        if (_error_) return res.json({ error: _error_ });
         const is_administrator = req.session?.user?.is_administrator; // Force
         const user_id = req.session?.user?.user_id;
 
@@ -382,8 +363,9 @@ export default async (context: MainContext) => {
         }
     });
 
-    app.post('/v1/instance/delete', ApiLimiter, RejectNotLoggedIn, async (req: Request, res: Response) => {
-        const { _error_, instance_id, force } = CheckJSONProperties(["instance_id", { key: "force", nullable: true }], req); if (_error_) return res.json({ error: _error_ });
+    app.post("/v1/instance/delete", ApiLimiter, RejectNotLoggedIn, async (req: Request, res: Response) => {
+        const { _error_, instance_id, force } = CheckJSONProperties(["instance_id", { key: "force", nullable: true }], req);
+        if (_error_) return res.json({ error: _error_ });
         const is_administrator = req.session?.user?.is_administrator; // Force
         const user_id = req.session?.user?.user_id;
 
@@ -400,7 +382,7 @@ export default async (context: MainContext) => {
             const client = NodeTable.get(node_id);
             if (client == null) {
                 if (force) {
-                    logger.log(await ORM.managed_instance.deleteMany({ where: { instance_id: instance.id } }))
+                    logger.log(await ORM.managed_instance.deleteMany({ where: { instance_id: instance.id } }));
                     logger.log(await ORM.instance.delete({ where: { id: instance.id } }));
                     return res.json({ error: null, data: {} });
                 } else {
@@ -441,8 +423,9 @@ export default async (context: MainContext) => {
         }
     });
 
-    app.get('/v1/instance/list', CommonLimiter, RejectNotLoggedIn, async (req: Request, res: Response) => {
-        const { _error_ } = CheckJSONProperties([], req); if (_error_) return res.json({ error: _error_ });
+    app.get("/v1/instance/list", CommonLimiter, RejectNotLoggedIn, async (req: Request, res: Response) => {
+        const { _error_ } = CheckJSONProperties([], req);
+        if (_error_) return res.json({ error: _error_ });
         const session = req.session as any;
         const user_id = session.user.user_id;
         const is_administrator = session.user.is_administrator; //// Force fetch
@@ -484,7 +467,8 @@ export default async (context: MainContext) => {
             }
 
             const records = JSON.parse(JSON.stringify(Array.from(instance_table, ([id, obj]) => obj)));
-            { // Find images and specify image name.
+            {
+                // Find images and specify image name.
                 const image_ids = records.map((n: any) => n.image_id);
                 const images = await ORM.image.findMany({ where: { id: { in: image_ids } } });
                 const image_table = new Map<string, any>();
@@ -500,4 +484,4 @@ export default async (context: MainContext) => {
             res.json({ error: "Internal Server Error [tySopUSF6p]" });
         }
     });
-}
+};

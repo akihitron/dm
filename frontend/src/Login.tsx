@@ -161,11 +161,11 @@ export default function SignIn({ onClosed, show, onClickedForgetPassword, onClic
             })()}
             <Button type='submit' fullWidth variant='contained' sx={{ mt: 3, mb: 2, height: 50 }} disabled={login_button_state}>
               <Box sx={{ display: access_state == 0 ? 'none' : 'flex' }}>
-                <CircularProgress size="1.5rem"/>
+                <CircularProgress size="1.5rem" />
               </Box>
               {access_state == 0 ? T('common.signin') : ''}
             </Button>
-            <Grid container sx={{mt:2}}>
+            <Grid container sx={{ mt: 2 }}>
               <Grid item xs>
                 <Link href='#' variant='body2' onClick={() => { onClickedForgetPassword() }}>
                   <s>{T('login.forget_password')}</s>

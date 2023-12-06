@@ -6,8 +6,6 @@ const APP_NAME = require("../package.json").name;
 ////////////////////////////////////////////////////////////////////////////////////
 // Main Proc
 async function main(params: AppParams) {
-
-
     const app_name = APP_NAME;
     params.server_name = `${app_name} server`;
     params.app_name = app_name;
@@ -19,8 +17,6 @@ async function main(params: AppParams) {
     await s_exe_s(`DATABASE_URL=${process.env.DATABASE_URL} npx prisma db push`);
     process.exit(0);
 }
-
-
 
 //////////////////////////////////////////////////////////////////////////////////////
 // Single thread
