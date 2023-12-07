@@ -27,11 +27,11 @@
     "@xterm/addon-unicode11": "^0.7.0-beta.1",
     "@xterm/addon-web-links": "^0.10.0-beta.1",
     "clsx": "^2.0.0",
-    "core-js": "^3.33.3",
+    "core-js": "^3.34.0",
     "countries-and-timezones": "^3.5.2",
     "floating-window-ui": "^1.3.6",
     "global": "^4.4.0",
-    "i18next": "^23.7.7",
+    "i18next": "^23.7.8",
     "iso-639-1": "^3.1.0",
     "react": "^18.2.0",
     "react-device-detect": "^2.2.3",
@@ -47,8 +47,8 @@
   },
   "devDependencies": {
     "@types/countries-and-timezones": "^3.2.3",
-    "@types/jest": "^29.5.10",
-    "@types/react": "^18.2.39",
+    "@types/jest": "^29.5.11",
+    "@types/react": "^18.2.42",
     "@types/react-dom": "^18.2.17",
     "@vitejs/plugin-basic-ssl": "^1.0.2",
     "@vitejs/plugin-react-swc": "^3.5.0",
@@ -59,10 +59,10 @@
     "react-refresh": "^0.14.0",
     "run-script-os": "^1.1.6",
     "serve": "^14.2.1",
-    "typescript": "^5.3.2",
-    "vite": "^5.0.2",
+    "typescript": "^5.3.3",
+    "vite": "^5.0.6",
     "vite-plugin-compression": "^0.5.1",
     "vite-plugin-cross-origin-isolation": "^0.1.6",
-    "vite-plugin-live-reload": "^3.0.2"
+    "vite-plugin-live-reload": "^3.0.3"
   }
 }

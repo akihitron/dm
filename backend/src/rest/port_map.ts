@@ -12,8 +12,8 @@ export async function GetPortMap(user_id: string, node_id: string | null, ORM: P
     for (const node of managed_instances) node_table.set(node.node_id, true);
     for (const node of own_nodes) node_table.set(node.id, true);
 
-    const node_ids = Array.from(node_table.keys());
-    const ins_ids = Array.from(managed_instances.filter((ins: any) => ins.instance_id).map((ins: any) => ins.instance_id));
+    const node_ids = Array.from(node_table.keys()) as Array<string>;
+    const ins_ids = Array.from(managed_instances.filter((ins: any) => ins.instance_id).map((ins: any) => ins.instance_id)) as Array<string>;
 
     if (node_ids.length == 0) return [];
     const node_table2 = new Map<string, any>();

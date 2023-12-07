@@ -1,4 +1,6 @@
 const PAD = 20;
+let stream:any = null;
+let enabled_console = true;
 
 function convert_to_string(o: any) {
     if (o instanceof Error) return (o as any).stack;
@@ -264,10 +266,13 @@ export function log(msg: any, ...dispVars: any[]) {
     dispVars.forEach((value) => arr.push(convert_to_string(value)));
 
     const lines = arr.join(" ").split("\n");
-
-    console.log("\x1b[36m%s\x1b[0m", line_num.padStart(PAD, " "), `\x1b[90m| \x1b[0m${lines.shift()}`);
+    const l1 = lines.shift();
+    if (stream) stream.write(`${line_num.padStart(PAD," ")} | ${l1}\n`);
+    if (enabled_console) console.log("\x1b[36m%s\x1b[0m", line_num.padStart(PAD, " "), `\x1b[90m| \x1b[0m${l1}\x1b[0m`);
     while (lines.length > 0) {
-        console.log("\x1b[36m%s\x1b[0m", "".padStart(PAD, " "), `\x1b[90m| \x1b[0m${lines.shift()}`);
+        const l2 = lines.shift();
+        if (stream) stream.write(`${"".padStart(PAD," ")} | ${l2}\n`);
+        if (enabled_console) console.log("\x1b[36m%s\x1b[0m", "".padStart(PAD, " "), `\x1b[90m| \x1b[0m${l2}\x1b[0m`);
     }
 }
 
@@ -277,4 +282,13 @@ export default {
     warn,
     error,
     log,
+    enableConsole: () => {
+        enabled_console = true;
+    },
+    disableConsole: () => {
+        enabled_console = false;
+    },
+    setStream: (s: any) => {
+        stream = s;
+    }
 };

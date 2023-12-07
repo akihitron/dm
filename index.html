@@ -298,7 +298,7 @@ Prism.languages.json={property:{pattern:/(^|[^\\])"(?:\\.|[^\\"\r\n])*"(?=\s*:)/
 <tr>
 <td style="text-align:left;">Server</td>
 <td style="text-align:left;">Express(swc-node)</td>
-<td style="text-align:left;">NGINX(:443/) → Express(:3150/)</td>
+<td style="text-align:left;">NGINX(:443/) → Express(:3050/)</td>
 </tr>
 <tr>
 <td style="text-align:left;">Reload</td>
@@ -312,12 +312,12 @@ Prism.languages.json={property:{pattern:/(^|[^\\])"(?:\\.|[^\\"\r\n])*"(?=\s*:)/
 </tr>
 <tr>
 <td style="text-align:left;">Session</td>
-<td style="text-align:left;">Redis/Memcached/MemoryStore</td>
-<td style="text-align:left;">Redis/Memcached/MemoryStore</td>
+<td style="text-align:left;"><s>Redis</s>/Memcached/MemoryStore</td>
+<td style="text-align:left;"><s>Redis</s>/Memcached/MemoryStore</td>
 </tr>
 </tbody>
 </table>
-<p>Back-end endpoint will be <a href="http://localhost:3050/">http://localhost:3050/</a> or <a href="http://localhost:3150/">http://localhost:3150/</a>.</p>
+<p>Back-end endpoint will be <a href="http://localhost:3050/">http://localhost:3050/</a>.</p>
 <p><br/>
 <br/></p>
 <p>The computing node is always isolated as binary. Available platforms are linux and macos.
@@ -594,8 +594,7 @@ npm run debug
 # In product
 npm start # build + run on dist
 </code></pre>
-<p>The endpoint will be <a href='http://localhost:3050'>http://localhost:3050</a> in development.
-In product, it will be <a href='http://localhost:3150'>http://localhost:3150</a>.</p>
+<p>The endpoint will be <a href='http://localhost:3050'>http://localhost:3050</a>.</p>
 <p>In deployment, "pm2 startup" is useful to prevent reboot of host.</p>
 <pre><code class="bash language-bash">AMD5950X-4090:back$ pm2 startup
 [PM2] Init System found: systemd
@@ -654,8 +653,7 @@ location / {
 }
 
 location /api/ {
-    # proxy_pass http://localhost:3050/; # To back-end for dev
-    proxy_pass http://localhost:3150/; # To back-end for product
+    proxy_pass http://localhost:3050/; # To back-end
     proxy_http_version 1.1; # For express
     proxy_set_header Upgrade $http_upgrade; # For express
 
@@ -754,8 +752,8 @@ It is located between a VM and a temporary container, is a container system main
 <br>
 <br></p>
 <h2 id="databaseinstallationtipsforbackendserver">Database installation tips for backend server</h2>
-<p>The database for the persistence part is based on Prisma and supports MySQL/Postgresql/SQLite, and supports Redis/Memcached/MemoryStore as session store. The default configuration is a combination of SQLite/MemoryStore for standalone. If you want to make your database persistent, choose MySQL or PostgreSQL. In session persistence or distributed backends, choose Redis or Memcached.</p>
-<p>Redis</p>
+<p>The database for the persistence part is based on Prisma and supports MySQL/Postgresql/SQLite, and supports <s>Redis</s>/Memcached/MemoryStore as session store. The default configuration is a combination of SQLite/MemoryStore for standalone. If you want to make your database persistent, choose MySQL or PostgreSQL. In session persistence or distributed backends, choose <s>Redis</s> or Memcached.</p>
+<p><s>Redis</s></p>
 <pre><code class="bash language-bash">sudo apt install -y redis-server
 sudo service redis start
 </code></pre>

@@ -1,7 +1,7 @@
-import configure from "../src/setup";
-import { AppParams, MainContext, s_exe_s } from "../src/global";
+import configure from "../setup";
+import { AppParams, MainContext, s_exe_s } from "../global";
 
-const APP_NAME = require("../package.json").name;
+const APP_NAME = require("../../package.json").name;
 
 ////////////////////////////////////////////////////////////////////////////////////
 // Main Proc
@@ -12,9 +12,13 @@ async function main(params: AppParams) {
     params.init.database = false;
     params.init.session_store = false;
 
+    await s_exe_s(`rm -rf ~/.cache/prisma*`);
+
     const context: MainContext = await configure(params);
 
-    await s_exe_s(`DATABASE_URL=${process.env.DATABASE_URL} npx prisma db push`);
+    // DATABASE_URL="<protocol>://<username>:<password>@<host>:<port>/<database>"
+    await s_exe_s(`DATABASE_URL=${process.env.DATABASE_URL} npx prisma db push --force-reset`);
+    // await context.clear_sessions();
     process.exit(0);
 }
 

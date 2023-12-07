@@ -1,7 +1,7 @@
-import configure from "../src/setup";
-import { AppParams, MainContext, s_exe_s } from "../src/global";
+import configure from "../setup";
+import { AppParams, MainContext, s_exe_s } from "../global";
 
-const APP_NAME = require("../package.json").name;
+const APP_NAME = require("../../package.json").name;
 
 ////////////////////////////////////////////////////////////////////////////////////
 // Main Proc

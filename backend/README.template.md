@@ -16,12 +16,12 @@ Fork: https://github.com/akihitron/dm
 
 ## Requirements and restrictions
 
-- Instance management
-- Image management
-- SSH key management
-- Compute node management
-- Port map management
-- Don't use Docker's easy features.
+-   Instance management
+-   Image management
+-   SSH key management
+-   Compute node management
+-   Port map management
+-   Don't use Docker's easy features.
 
 <br>
 <br>
@@ -48,14 +48,14 @@ Front-end endpoint will be [http://localhost:4050/](http://localhost:4050/).
 
 The backend uses standard Express. Never use the Bun package as it will cause proxy issues with the frontend.
 
-| Back-end | Development                     | Product                         |
-| :------- | :------------------------------ | :------------------------------ |
-| Server   | Express(swc-node)               | NGINX(:443/) → Express(:3150/)  |
-| Reload   | VSCode/nodemon/live-reload      | -                               |
-| Database | Prisma(MySQL/PostgreSQL/SQLite) | Prisma(MySQL/PostgreSQL/SQLite) |
-| Session  | Redis/Memcached/MemoryStore     | Redis/Memcached/MemoryStore     |
+| Back-end | Development                        | Product                            |
+| :------- | :--------------------------------- | :--------------------------------- |
+| Server   | Express(swc-node)                  | NGINX(:443/) → Express(:3050/)     |
+| Reload   | VSCode/nodemon/live-reload         | -                                  |
+| Database | Prisma(MySQL/PostgreSQL/SQLite)    | Prisma(MySQL/PostgreSQL/SQLite)    |
+| Session  | <s>Redis</s>/Memcached/MemoryStore | <s>Redis</s>/Memcached/MemoryStore |
 
-Back-end endpoint will be [http://localhost:3050/](http://localhost:3050/) or [http://localhost:3150/](http://localhost:3150/).
+Back-end endpoint will be [http://localhost:3050/](http://localhost:3050/).
 
 <br/>
 <br/>
@@ -187,8 +187,7 @@ npm start # build + run on dist
 
 ```
 
-The endpoint will be <a href='http://localhost:3050'>http://localhost:3050</a> in development.
-In product, it will be <a href='http://localhost:3150'>http://localhost:3150</a>.
+The endpoint will be <a href='http://localhost:3050'>http://localhost:3050</a>.
 
 In deployment, "pm2 startup" is useful to prevent reboot of host.
 
@@ -257,8 +256,7 @@ location / {
 }
 
 location /api/ {
-    # proxy_pass http://localhost:3050/; # To back-end for dev
-    proxy_pass http://localhost:3150/; # To back-end for product
+    proxy_pass http://localhost:3050/; # To back-end
     proxy_http_version 1.1; # For express
     proxy_set_header Upgrade $http_upgrade; # For express
 
@@ -373,7 +371,7 @@ It is located between a VM and a temporary container, is a container system main
 
 ### Known issues
 
-- ZFS disk leak problem
+-   ZFS disk leak problem
 
 ## Podman (TODO)
 
@@ -385,9 +383,9 @@ Docker desktop for macos has become a paid service, so podman support is likely 
 
 ## Database installation tips for backend server
 
-The database for the persistence part is based on Prisma and supports MySQL/Postgresql/SQLite, and supports Redis/Memcached/MemoryStore as session store. The default configuration is a combination of SQLite/MemoryStore for standalone. If you want to make your database persistent, choose MySQL or PostgreSQL. In session persistence or distributed backends, choose Redis or Memcached.
+The database for the persistence part is based on Prisma and supports MySQL/Postgresql/SQLite, and supports <s>Redis</s>/Memcached/MemoryStore as session store. The default configuration is a combination of SQLite/MemoryStore for standalone. If you want to make your database persistent, choose MySQL or PostgreSQL. In session persistence or distributed backends, choose <s>Redis</s> or Memcached.
 
-Redis
+<s>Redis</s>
 
 ```bash
 sudo apt install -y redis-server
@@ -519,10 +517,10 @@ sudo apt install -y pgadmin4
 
 GUI for MySQL
 
-- <s>MySQL Workbench</s> (Not recommended)
-- DBeaver
-- phpMyAdmin
-- HeidiSQL(Windows)
+-   <s>MySQL Workbench</s> (Not recommended)
+-   DBeaver
+-   phpMyAdmin
+-   HeidiSQL(Windows)
 
 ### Jetson
 

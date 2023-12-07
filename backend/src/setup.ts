@@ -11,14 +11,21 @@ import { NextFunction } from "express";
 
 // Database drivers
 // import mongoose from 'mongoose';
-import MongoStore from "connect-mongo";
+// import MongoStore from "connect-mongo";
 import { PrismaClient } from "@prisma/client";
 
 // Session store drivers
-import { MemcachedStore, MemcachedSessionOptions } from "connect-memcached";
-import { createClient as createRedisClient } from "redis";
-import RedisStore from "connect-redis";
+import session from "express-session";
+import ConnectMemcached from "connect-memcached";
+// import { createClient as createRedisClient } from "redis";
+// import RedisStore from "connect-redis";
 import { randomUUID } from "crypto";
+
+// For nodejs 16-
+import _node_fetch from "isomorphic-fetch";
+const node_fetch = _node_fetch;
+
+const MemcachedStore = ConnectMemcached(session);
 
 const USE_LIMITER = false;
 let IPv4: string | null = null;
@@ -41,17 +48,17 @@ const IPv4_CheckURL = "https://api.ipify.org";
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 // Redis driver
-class RedisDriver {
-    async init(driver_config: any) {
-        const end_point = driver_config.end_point ? driver_config.end_point : `redis://${driver_config.host}:${driver_config.port}`;
-        // Test Connection
-        logger.log("Redis: Connecting...");
-        const redisClient = createRedisClient({ url: end_point });
-        await redisClient.connect();
-        logger.success("Redis: OK");
-        return redisClient;
-    }
-}
+// class RedisDriver {
+//     async init(driver_config: any) {
+//         const end_point = driver_config.end_point ? driver_config.end_point : `redis://${driver_config.host}:${driver_config.port}`;
+//         // Test Connection
+//         logger.log("Redis: Connecting...");
+//         const redisClient = createRedisClient({ url: end_point });
+//         await redisClient.connect();
+//         logger.success("Redis: OK");
+//         return redisClient;
+//     }
+// }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 // MySQL/PostgresSQL/SQLite driver
@@ -129,11 +136,11 @@ function CheckConfig(config: any) {
         driver: "memorystore",
         secret_key: randomUUID().replace(/-/g, ""),
         drivers: {
-            redis: {
-                host: "127.0.0.1",
-                port: 6379,
-                password: null,
-            },
+            // redis: {
+            //     host: "127.0.0.1",
+            //     port: 6379,
+            //     password: null,
+            // },
             memcached: {
                 hosts: ["127.0.0.1:11211"],
             },
@@ -189,9 +196,9 @@ async function configure(params: AppParams) {
         context.local_ipv4s = NetworkInterfaces.local_ipv4s();
         logger.log(`ARGV: NODE_ENV(${process.env.NODE_ENV}) JEST(${process.env.JEST}) DEBUG(${process.env.DEBUG}) NODE_CLUSTER(${process.env.NODE_CLUSTER})`);
 
-        IPv4 = (await fetch(context.config.IPv4_CheckURL ?? IPv4_CheckURL)
-            .then((res) => res.text())
-            .catch((e) => console.error("\x1b[31m", e, "\x1b[0m"))) as string;
+        IPv4 = (await node_fetch(context.config.IPv4_CheckURL ?? IPv4_CheckURL)
+            .then((res:any) => res.text())
+            .catch((e:any) => console.error("\x1b[31m", e, "\x1b[0m"))) as string;
         if (IPv4 == null) {
             logger.error("Failed to get IPv4 address.");
             process.exit(1);
@@ -247,38 +254,40 @@ async function configure(params: AppParams) {
                 const driver_name = session_store_config.driver;
                 const driver_config = session_store_config.drivers[driver_name];
                 if (driver_name == "mongodb") {
-                    if (database_config.driver == "mongodb") {
-                        const _db: any = await db;
-                        session_store = MongoStore.create({
-                            clientPromise: new Promise((resolve) => resolve((_db as any).connection.getClient())),
-                        });
-                    } else {
-                        session_store = MongoStore.create({
-                            mongoUrl: driver_config.end_point,
-                        });
-                    }
+                    // if (database_config.driver == "mongodb") {
+                    //     const _db: any = await db;
+                    //     session_store = MongoStore.create({
+                    //         clientPromise: new Promise((resolve) => resolve((_db as any).connection.getClient())),
+                    //     });
+                    // } else {
+                    //     session_store = MongoStore.create({
+                    //         mongoUrl: driver_config.end_point,
+                    //     });
+                    // }
                     logger.log("SessionStore:", driver_name, driver_config.end_point);
+                    throw new Error("Removed MongoDB driver.");
                 } else if (driver_name == "redis") {
-                    const driver = new RedisDriver();
-                    const redis_connector = await driver.init(driver_config);
-                    session_store = new RedisStore({
-                        client: redis_connector,
-                        prefix: params.app_name + ":",
-                    });
-                    context.clear_sessions = function () {
-                        return new Promise(async (resolve, reject) => {
-                            logger.log("Clearing sessions...");
-                            const keys = await redis_connector.keys(`${app_name}:*`);
-                            logger.log("Clearing sessions...", keys.length);
-                            for (const key of keys) {
-                                logger.log("Delete:", key);
-                                await redis_connector.del(key);
-                            }
-                            resolve(0);
-                        });
-                    };
+                    // const driver = new RedisDriver();
+                    // const redis_connector = await driver.init(driver_config);
+                    // session_store = new RedisStore({
+                    //     client: redis_connector,
+                    //     prefix: params.app_name + ":",
+                    // });
+                    // context.clear_sessions = function () {
+                    //     return new Promise(async (resolve, reject) => {
+                    //         logger.log("Clearing sessions...");
+                    //         const keys = await redis_connector.keys(`${app_name}:*`);
+                    //         logger.log("Clearing sessions...", keys.length);
+                    //         for (const key of keys) {
+                    //             logger.log("Delete:", key);
+                    //             await redis_connector.del(key);
+                    //         }
+                    //         resolve(0);
+                    //     });
+                    // };
+                    throw new Error("Removed Redis driver. Use Memcached instead.");
                 } else if (driver_name == "memcached") {
-                    session_store = new MemcachedStore(driver_config as MemcachedSessionOptions);
+                    session_store = new MemcachedStore((driver_config??{}) as any);
                     logger.log("SessionStore:", driver_name, driver_config.hosts);
                 } else {
                     // Default is MemoryStore.

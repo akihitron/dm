@@ -9,7 +9,7 @@ import expressWs from "express-ws";
 import showdown from "showdown";
 import configure from "./setup";
 import { createStream } from "rotating-file-stream";
-import { AppParams, GenerateSalt, HashPassword, MainContext } from "./global";
+import { AppParams, GenerateSalt, HashPassword, MainContext, s_exe_s } from "./global";
 import ComputeNodeAPI from "./rest/compute_node";
 import ImageAPI from "./rest/image";
 import InstanceAPI from "./rest/instance";
@@ -20,8 +20,11 @@ import { PrismaClient } from "@prisma/client";
 import logger from "./logger";
 import cors from "cors";
 
-const APP_NAME = "dmb";
-const APP_VERSION = "0.8.0";
+
+
+
+const APP_NAME = "dmb"; // TODO: from package.json
+const APP_VERSION = "0.8.0"; // TODO: from package.json
 const SIGTERM_FUNCS:Array<Function> = [];
 process.on('SIGTERM', () => {
     logger.error('SIGTERM signal received.');
@@ -89,13 +92,59 @@ async function main(params: AppParams) {
     params.server_name = `${app_name} server`;
     params.app_name = app_name;
 
-    const context: MainContext = await configure(params);
-    const ORM = context.model as PrismaClient;
 
     //////////////////////////////////////////////////////////////////////////////
     // Create express app
     const app: Express = express();
+    //////////////////////////////////////////////////////////////////////////////
+    // WebSocket
+    expressWs(app);
+
+    //////////////////////////////////////////////////////////////////////////////
+    // HTTP access logger and live reloader
+    // "combined": Apache standard combined log
+    // "short": tiny log.
+    if (process.env.NODE_ENV == "development") {
+        app.use(morgan("              morgan | => :method :url"));
+
+        const livereload = await import("livereload");
+        const connectLiveReload = require("connect-livereload");
+        const liveReloadServer = livereload.createServer();
+        liveReloadServer.server.once("connection", () => {
+            setTimeout(() => {
+                liveReloadServer.refresh("./");
+            }, 100);
+        });
+        app.use(connectLiveReload());
+        SIGTERM_FUNCS.push(() => liveReloadServer.close());
+    } else {
+        const logDirectory = path.join("/var/log/", app_name, "app.log");
+        let enable_access_log_file = false;
+        try {if (!fs.existsSync(logDirectory)) fs.mkdirSync(logDirectory, { recursive: true });enable_access_log_file=true;} catch (e) {enable_access_log_file = false;}
+        if (enable_access_log_file) {
+            const accessLogStream = createStream("access.log", {
+                size: "10MB",
+                interval: "10d",
+                compress: "gzip",
+                path: logDirectory,
+            });
+            app.use(morgan("              morgan | => :method :url", { stream: accessLogStream }));
+            // app.use(morgan("combined", { stream: accessLogStream }));
+            logger.setStream(accessLogStream);
+        } else {
+            app.use(morgan("              morgan | => :method :url"));
+        }
+    }
+    logger.info("---------------- BOOT -----------------");
+    logger.info(new Date().toISOString());
+    logger.info("ENV:", app.get("env"), process.env.NODE_ENV,  process.env.NODE_ENV == "development");
+
+
+
+    const context: MainContext = await configure(params);
+    const ORM = context.model as PrismaClient;
     context.app = app;
+    context.port = 3050;
     const TOP_DOCUMENT = ConvertMarkdownToHTML(params, app);
 
     // CORS
@@ -108,48 +157,10 @@ async function main(params: AppParams) {
         // }));
     }
 
-    //////////////////////////////////////////////////////////////////////////////
-    // WebSocket
-    expressWs(app);
 
     //////////////////////////////////////////////////////////////////////////////
-    // HTTP access logger and live reloader
-    // "combined": Apache standard combined log
-    // "short": tiny log.
-    logger.info(app.get("env"), process.env.NODE_ENV,  process.env.NODE_ENV == "development");
-    if (process.env.NODE_ENV != "development") {
-        // if (app.get("env") != "development") {
-            const logDirectory = path.join(__dirname, "./log");
-        fs.existsSync(logDirectory) || fs.mkdirSync(logDirectory);
-        const accessLogStream = createStream("access.log", {
-            size: "10MB",
-            interval: "10d",
-            compress: "gzip",
-            path: logDirectory,
-        });
-        app.use(morgan("combined", { stream: accessLogStream }));
-        context.port = 3150;
-    } else {
-        logger.warn("DEBUG: log: morgan");
-        app.use(morgan("              morgan | => :method :url"));
-        const livereload = await import("livereload");
-        const connectLiveReload = require("connect-livereload");
-        logger.warn("DEBUG: livereload");
-        const liveReloadServer = livereload.createServer();
-        liveReloadServer.server.once("connection", () => {
-            setTimeout(() => {
-                liveReloadServer.refresh("./");
-            }, 100);
-        });
-        app.use(connectLiveReload());
-        context.port = 3050;
-
-        SIGTERM_FUNCS.push(() => liveReloadServer.close());
-    }
-
-    //////////////////////////////////////////////////////////////////////////////
-    // Create default users in development mode.
-    if (app.get("env") != "production") {
+    // Create default users.
+    if (context.config.default_users) {
         for (const default_user of context.config.default_users) {
             const salt = GenerateSalt(64);
             const hash = HashPassword(default_user.password, salt, "sha3-256");
@@ -167,8 +178,6 @@ async function main(params: AppParams) {
             logger.log("Registered:", user);
         }
     }
-
-    logger.log("Server start");
 
     //////////////////////////////////////////////////////////////////////////////
     // Session store
