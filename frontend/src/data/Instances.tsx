@@ -20,6 +20,7 @@ const WS_URL = `${WS_PROTOCOL}//${ORIGIN_URL_OBJ.host}${BASE_URL}api/ws/`;
 console.warn(WS_URL);
 
 const TEMPLATE_NAME = ["raccoon", "dog", "wild_boar", "rabbit", "cow", "horse", "wolf", "hippopotamus", "kangaroo", "fox", "giraffe", "bear", "koala", "bat", "gorilla", "rhinoceros", "monkey", "deer", "zebra", "jaguar", "polar_bear", "skunk", "elephant", "raccoon_dog", "animal", "reindeer", "rat", "tiger", "cat", "mouse", "buffalo", "hamster", "panda", "sheep", "leopard", "pig", "mole", "goat", "lion", "camel", "squirrel", "donkey"];
+const TEMPLATE_NAME2 = ["smiling", "angry", "sad", "surprised", "happy", "crazy", "drunk", "smart", "noble", "spoiled", "sleepy","excited","relaxing","fighting","mysterious", "awesome", "burning", "frost", "giant", "steel", "confused", "talking", "typing", "space"];
 
 const columns: GridColDef[] = [
     {
@@ -943,10 +944,8 @@ export default function InstancesGrid(prop: any) {
                                                                 setErrorMessage(ret.error);
                                                                 console.error(ret.error);
                                                                 setDisableSubmit(true);
-                                                                setInstanceName(TEMPLATE_NAME[Math.floor(Math.random() * 1000) % TEMPLATE_NAME.length]);
-                                                            } else {
-                                                                setInstanceName(TEMPLATE_NAME[Math.floor(Math.random() * 1000) % TEMPLATE_NAME.length]);
                                                             }
+                                                            setInstanceName(TEMPLATE_NAME2[Math.floor(Math.random() * 1000) % TEMPLATE_NAME2.length] +"_"+ TEMPLATE_NAME[Math.floor(Math.random() * 1000) % TEMPLATE_NAME.length]);
                                                         })
                                                         .catch((e) => {
                                                             console.error(e);
@@ -1063,27 +1062,9 @@ export default function InstancesGrid(prop: any) {
             )}
 
             {tab == 3 ? (
-                <>
-                    <Box sx={{ boxShadow: "0px 0px 2px black" }}>
-                        <TerminalComponent />
-                        {/* <Card>
-						<CardContent>
-							<Paper sx={{
-								marginTop: 2,
-								padding: 2,
-								width: '100%',
-								backgroundColor: '#222',
-								overflow: 'auto',
-								color: '#AAA',
-								whiteSpace: 'pre-wrap',
-								boxShadow: "0px 0px 2px black",
-							}}>
-								<TerminalComponent/>
-							</Paper>
-						</CardContent>
-					</Card> */}
-                    </Box>
-                </>
+                <Box sx={{ boxShadow: "0px 0px 2px black" }}>
+                    <TerminalComponent />
+                </Box>
             ) : (
                 ""
             )}

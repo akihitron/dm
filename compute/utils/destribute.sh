@@ -52,7 +52,7 @@ host_name=$(hostname)
 
 if [ "$host_name" = "min" ]; then
     # MIN Server
-    cp -f utils/installer.sh ~/datas/bin/installer/dmc.sh
+    cp -f utils/installer.sh ~/datas/ins/dmc
 
     TARGET=st
     echo "Copy to $TARGET"

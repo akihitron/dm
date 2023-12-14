@@ -88,6 +88,7 @@ export default async (context: MainContext) => {
                 hash: session_hash,
                 user_id: d_user.id,
                 email: d_user.email,
+                node_id: node_id,
                 is_api_key_session: !is_password_auth,
                 is_administrator: d_user.permission == "administrator",
                 instance_limit: d_user.instance_limit,

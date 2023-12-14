@@ -4,7 +4,7 @@
   "description": "",
   "author": "Aki",
   "license": "ISC",
-  "main": "dist/src/backend.js",
+  "main": "dist/backend.js",
   "scripts": {
     "start": "npm run build && pm2 start pm2config.json --env production && pm2 save",
     "stop": "pm2 list && pm2 stop backend",
@@ -13,13 +13,15 @@
     "build": "rm -rf dist && rm -rf bin && tsc && tscp && cp -rf src/public dist/public",
     "debug": "npm run kill ; cross-env NODE_ENV=development nodemon",
     "kill": "pkill -f '(swc-node.+backend)'",
-    "init": "npx prisma generate && swc-node src/utils/db_init.ts",
+    "init": "swc-node src/utils/app_init.ts && npx prisma generate && swc-node src/utils/db_init.ts",
     "migrate": "npx prisma generate && swc-node src/utils/db_migrate.ts",
     "sync": "npx prisma generate && swc-node src/utils/db_sync.ts",
     "sync_force": "npx prisma generate && swc-node src/utils/db_sync_force_reset.ts",
     "gui": "swc-node src/utils/db_gui.ts",
     "init_mongo": "swc-node src/destroy.ts",
-    "deploy": "rm -f bin/*;tsc && tscp && pkg dist/backend.js --out-path bin --targets node16-linux-x64,node16-macos-x64",
+    "deploy": "run-script-os",
+    "deploy:nix": "rm -f bin/*;tsc && tscp && pkg dist/backend.js --out-path bin --targets node16-linux-x64",
+    "deploy:macos": "rm -f bin/*;tsc && tscp && pkg dist/backend.js --out-path bin --targets node16-macos-x64",
     "deploy_arm": "run-script-os",
     "deploy_arm:nix": "rm -f bin/*;tsc && tscp && pkg dist/backend.js --out-path bin --targets node16-linux-arm64",
     "deploy_arm:macos": "rm -f bin/*;tsc && tscp && pkg dist/backend.js --out-path bin --targets node16-macos-arm64",
@@ -40,7 +42,7 @@
     "readline": "^1.3.0",
     "rotating-file-stream": "^3.1.1",
     "showdown": "^2.1.0",
-    "ws": "^8.14.2"
+    "ws": "^8.15.0"
   },
   "devDependencies": {
     "@swc-node/jest": "^1.6.8",

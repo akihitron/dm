@@ -1,14 +1,21 @@
 #!/bin/bash
-# curl -fsSL https://d3w.app/bin/installer/dmc.sh | bash
+# curl -fsSL https://d3w.app/ins/dmc | bash
+set -e
 
-VERSION="0.0.1"
+VERSION="0.0.1" # TODO: version management
 URL=https://d3w.app/bin
 BIN=compute.tar.xz
+APP=dmc
 ARCH=
 OS=
 arch=$(uname -m)
 system_name=$(uname -s)
 
+
+
+
+##########################################################################################
+# Check Arch
 if [ "$arch" = "armv7l" ]; then
     echo "Not support armv7l"
     exit 1
@@ -21,6 +28,8 @@ else
     exit 1
 fi
 
+##########################################################################################
+# Check OS
 if [ "$system_name" = "Linux" ]; then
     OS=linux
 elif [ "$system_name" = "Darwin" ]; then
@@ -38,43 +47,58 @@ fi
 echo "ARCH: $ARCH, OS: $OS, VERSION: $VERSION"
 echo "$URL/$OS-$ARCH/$BIN"
 
+##########################################################################################
+# Install DMC
 curl -fsSL -o "/tmp/$BIN" "$URL/$OS-$ARCH/$BIN"
 tar -xJf "/tmp/$BIN" -C /tmp
 chmod +x /tmp/compute
-sudo mv /tmp/compute /usr/local/bin/dmc
-echo "Installed /usr/local/bin/dmc"
+sudo mv /tmp/compute /usr/local/bin/$APP
+echo "Installed /usr/local/bin/$APP"
 rm "/tmp/$BIN"
 
 sleep 1
 
-sudo mkdir -p /etc/dmc
+##########################################################################################
+# Setup config.json
 curl -fsSL -o "/tmp/config.json" "$URL/$OS-$ARCH/compute.template_config.json"
 
 sleep 1
 
-if [ -e "/etc/dmc/config.json" ]; then
-    echo "Already exists: /etc/dmc/config.json" # nothing to do
+if [ -e "/etc/$APP/config.json" ]; then
+    echo "Already exists: /etc/$APP/config.json" # nothing to do
 else
-    sudo mv /tmp/config.json /etc/dmc/config.json
+    sudo mkdir -p /etc/$APP
+    sudo mv /tmp/config.json /etc/$APP/config.json
 fi
+
+if id "$APP" &>/dev/null; then
+    echo "Already exists $APP"
+else
+    sudo groupadd $APP
+    sudo useradd -r -g $APP $APP
+    sudo usermod -aG $APP $USER
+fi
+
+
 
 sleep 1
 
-echo "Setup /etc/dmc/config.json"
+echo "Setup /etc/$APP/config.json"
 sleep 2
-cat /etc/dmc/config.json
+cat /etc/$APP/config.json
+sudo chown -R $APP:$APP /etc/$APP
+sudo chmod -R g+w /etc/$APP
 
-# Daemonize
-if [ "$system_name" = "Linux" ]; then
 
-sudo tee /etc/systemd/system/dmc.service << EOF
+
+sudo tee /etc/systemd/system/$APP.service << EOF
 
 [Unit]
-Description=dmc
+Description=$APP
 
 [Service]
 Type=simple
-ExecStart=/usr/local/bin/dmc
+ExecStart=/usr/local/bin/$APP
 Restart=always
 
 [Install]
@@ -82,14 +106,9 @@ WantedBy=multi-user.target
 
 EOF
 
-    echo "Installed /etc/systemd/system/dmc.service"
-    echo "sudo systemctl enable dmc"
-    echo "# Run: sudo systemctl start dmc"
-    echo "# Run: sudo systemctl status dmc"
+echo "Installed /etc/systemd/system/$APP.service"
+echo "sudo systemctl enable $APP"
+echo "# Run: sudo systemctl start $APP"
+echo "# Run: sudo systemctl status $APP"
 
-elif [ "$system_name" = "Darwin" ]; then
-    OS=macos
-else
-    echo "Other system: $system_name"
-    exit 1
-fi
+exit 0

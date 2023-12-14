@@ -2,6 +2,9 @@ import crypto from "crypto";
 import session from "express-session";
 import { spawn } from "child_process";
 import express, { Express, Request, Response, NextFunction } from "express";
+import instance from "rest/instance";
+import WebSocket from "ws";
+import logger from "./logger";
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 // Application Args
@@ -56,7 +59,11 @@ export function GenerateSalt(length: number = 64) {
 
 export function RejectNotLoggedIn(req: Request, res: Response, next: NextFunction) {
     const session = req.session as any;
-    if (session?.user?.hash == null) return res.json({ error: "The session has already expired or does not exist account.", error_code: "x2TpbFQruG" });
+    if (session?.user?.hash == null) {
+        const clientIp = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+        logger.error(`Rejected:(IP:${clientIp})`);
+        return res.json({ error: "The session has already expired or does not exist account.", error_code: "x2TpbFQruG" })
+    }
     session.views = session.views == null ? 1 : session.views + 1; // Update maxAge
     session.touch(); // Update maxAge
     next();
@@ -120,7 +127,6 @@ export function CheckJSONProperties(args: Array<string | any>, req: Request) {
         if (is_object) {
             max_length = arg["max_length"] || 256;
             if (arg["nullable"] != true) {
-                console.warn(arg);
                 if (json[key] == null) {
                     lacked_props.push(key);
                     continue;
@@ -160,10 +166,35 @@ export class Event {
 }
 
 export class Channel {
-    channel_id: string | null = null;
+    id: string;
+    node_id: string | null = null;
+    instance_id: string | null = null;
     left_queue: Array<any> = [];
     right_queue: Array<any> = [];
     last_updated: number = Date.now();
+    client_ws: WebSocket | null = null;
+    server_ws: WebSocket | null = null;
+    constructor(channel_id: string) {
+        this.id = channel_id;
+    }
+    update() {
+        if (this.client_ws) {
+            if (this.left_queue.length > 0) {
+                for (const data of this.left_queue) {
+                    this.client_ws.send(JSON.stringify(data));
+                }
+                this.left_queue = [];
+            }
+        }
+        if (this.server_ws) {
+            if (this.right_queue.length > 0) {
+                for (const data of this.right_queue) {
+                    this.server_ws.send(JSON.stringify(data));
+                }
+                this.right_queue = [];
+            }
+        }
+    }
 }
 
 export class Node {
@@ -172,6 +203,7 @@ export class Node {
 
     channel_table: Map<string, Channel> = new Map();
 
+    server_ws: WebSocket | null = null;
     
 
     connector: any = null;

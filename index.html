@@ -429,61 +429,17 @@ Unfortunately, windows platform is still required VM or WSL.</p>
 <p><br/>
 <br/></p>
 <h2 id="computenodeconfiguration">Compute node configuration</h2>
-<pre><code class="json language-json">{
-  "node_id": "&lt;make your node id first&gt;",
-  "api_key_id": "&lt;make your api key first&gt;",
-  "api_key_secret": "&lt;make your api key first&gt;",
-  "manipulator": {
-    "end_point": "http://localhost:3050/"
-  },
-  "driver": "docker",
-  "drivers": {
-    "docker": {
-      "end_point": null
-    },
-    "podman": {
-      "end_point": null
-    },
-    "lxd": {
-      "end_point": null
-    },
-    "kvm": {
-      "end_point": null
-    },
-    "xen": {
-      "end_point": null
-    },
-    "qemu": {
-      "end_point": null
-    }
-  },
-  "IPv4_CheckURL": "https://api.ipify.org",
-  "IPv6_CheckURL": "https://api64.ipify.org",
-  "use_ipv4": true,
-  "use_ipv6": false,
-  "ipv4_ports": {
-    "range01": {
-      "protocol": "tcp",
-      "range": [
-        63000,
-        63030
-      ]
-    }
-  },
-  "ipv6_ports": {}
-}
-</code></pre>
 <ol>
 <li>Download binary from <a href="https://d3w.app/bin/">https://d3w.app/bin/</a> and add exec permission.</li>
-<li>Copy and setup configuration file.</li>
 </ol>
-<pre><code class="bash language-bash">sudo mkdir -p /etc/dmc
-cp compute/template.config.json /etc/dmc/config.json
+<pre><code class="bash language-bash">curl -fsSL https://d3w.app/ins/dmc | bash
 </code></pre>
-<ol start="3">
+<ol start="2">
 <li>Create an entry point of compute node and issue an API key. After that setup config on compute node.</li>
-<li>Daemonize "compute" binary somehow. (Recommend to use pm2.)</li>
+<li>Start compute node service.</li>
 </ol>
+<pre><code class="bash language-bash">sudo service dmc start
+</code></pre>
 <p><br>
 <br>
 <br>
@@ -502,73 +458,8 @@ cp compute/template.config.json /etc/dmc/config.json
 <br>
 <br></p>
 <h1 id="frontendandbackendforadministratordeveloper">Frontend and backend for administrator/developer</h1>
-<h2 id="configurationforbackend">Configuration for back-end</h2>
-<ol>
-<li>Copy and setup configuration file.</li>
-</ol>
-<pre><code class="bash language-bash">sudo mkdir -p /etc/dmb
-cp backend/template.config.json /etc/dmb/config.json
-</code></pre>
-<ol start="2">
-<li><font color='red'>Start front-end and back-end server and setup root user.</font></li>
-</ol>
-<pre><code class="json language-json">{
-  "database": {
-    "driver": "sqlite",
-    "drivers": {
-      "mongodb": {
-        "end_point": "mongodb://&lt;username&gt;:&lt;password&gt;@localhost:27017/dmb"
-      },
-      "postgresql": {
-        "end_point": "postgresql://&lt;username&gt;:&lt;password&gt;@localhost:5432/dmb"
-      },
-      "sqlserver": {
-        "end_point": "sqlserver://&lt;username&gt;:&lt;password&gt;@localhost:1433/dmb"
-      },
-      "mysql": {
-        "end_point": "mysql://&lt;username&gt;:&lt;password&gt;@localhost:3306/dmb"
-      },
-      "sqlite": {
-        "end_point": "file:./workspace/sqlite.db?connection_limit=1"
-      }
-    }
-  },
-  "session_store": {
-    "driver": "memorystore",
-    "secret_key": "&lt;your session secret key&gt;",
-    "drivers": {
-      "redis": {
-        "host": "127.0.0.1",
-        "port": 6379,
-        "password": null
-      },
-      "memcached": {
-        "hosts": ["127.0.0.1:11211"]
-      },
-      "memorystore": {
-
-      }
-    }
-  },
-
-  "IPv4_CheckURL": "https://api.ipify.org",
-  "IPv6_CheckURL": "https://api64.ipify.org",
-
-
-  "email": {
-    "driver": "gmail",
-    "drivers": {
-      "gmail": {
-        "user": "&lt;your@gmail.com&gt;",
-        "pass": "&lt;your password&gt;"
-      }
-    }
-  },
-  "default_users": []
-}
-</code></pre>
-<h2 id="installationandrun">Installation and Run</h2>
-<p>Nodejs 16+ based on nvm.
+<h2 id="nodejs16">NodeJS16+</h2>
+<p>Install Nodejs 16+ based on nvm.
 Ubuntu18- version, there is libc package issue. NodeJS18 requires glibc 2.28, and it has to downgrade the package version when you used older linux OS. In particular, some edge devices often restricted by vendor like NVIDIA and Google.</p>
 <pre><code class="bash language-bash">curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.5/install.sh | bash
 nvm install 16
@@ -584,48 +475,41 @@ npm install -g swc-node nodemon pm2 # execute with sudo in linux.
 # Setup your config.json
 
 ##################################################
-# Initialize database
+# Initialize database and config
 npm run init
 
-# debug or launch from vscode with launch.json
-npm run debug
 
 ##################################################
-# In product
-npm start # build + run on dist
+# Run
+npm run debug # Debug
+npm start # Run as product
+
+
+# Daemonize and register startup
+pm2 startup
 </code></pre>
 <p>The endpoint will be <a href='http://localhost:3050'>http://localhost:3050</a>.</p>
-<p>In deployment, "pm2 startup" is useful to prevent reboot of host.</p>
-<pre><code class="bash language-bash">AMD5950X-4090:back$ pm2 startup
-[PM2] Init System found: systemd
-[PM2] To setup the Startup Script, copy/paste the following command:
-sudo env PATH=$PATH:/usr/local/bin /usr/local/lib/node_modules/pm2/bin/pm2 startup systemd -u johndoe --hp /home/johndoe
-
-AMD5950X-4090:back$ sudo env PATH=$PATH:/usr/local/bin /usr/local/lib/node_modules/pm2/bin/pm2 startup systemd -u johndoe --hp /home/johndoe
-
-# after that, pm2 restart your app when you reboot a host.
-</code></pre>
+<p><br>
+<br>
+<br>
+<br>
+<br></p>
 <h3 id="forfrontend">For front-end</h3>
 <pre><code class="bash language-bash">##################################################
 # In development
 cd frontend &amp;&amp; npm ci
 npm start # Vite
-
-npm run start2 # Farm
-# Farm is faster than Vite and modern framework for front-end.
-# But the framework is only available in Linux. No use in macosx and windows.
 </code></pre>
 <p>The endpoint will be <a href='http://localhost:4050'>http://localhost:4050</a></p>
 <p>Front-end deployment flow is super simple, because it's just static HTML.
 Just locate the deployed files on nginx after built.</p>
 <pre><code class="bash language-bash">##################################################
 # In Product
-cd frontend &amp;&amp; npm ci
-npm run build # to "./dist" and base url will be "/"
-BASE_URL=hogehoge npm run build # The react router will refer "/hogehoge" as base url.
-
-
-##################################################
+npm run build # to ./dist
+BASE_URL=hogehoge npm run build
+# The react router will refer "/hogehoge" as base url.
+</code></pre>
+<pre><code class="bash language-bash">##################################################
 # Nginx example
 .
 .
@@ -673,14 +557,68 @@ location /api/ {
 .
 .
 </code></pre>
+<p><br>
+<br>
+<br>
+<br>
+<br></p>
 <h3 id="forcomputenode">For compute node</h3>
+<p>Setup env and config.</p>
 <pre><code class="bash language-bash">##################################################
 # In development
 cd compute &amp;&amp; npm ci
 
-# Setup your config.json
+APP="dmc"
+if id "$APP" &amp;&gt;/dev/null; then
+    echo "Already exists $APP"
+else
+    sudo groupadd $APP
+    sudo useradd -r -g $APP $APP
+    sudo usermod -aG $APP $USER
+fi
 
-npm start # development
+cp src/tiny.config.json /etc/$APP/config.json
+</code></pre>
+<p>Required config properteis. </p>
+<table>
+<thead>
+<tr>
+<th style="text-align:right;">Prop</th>
+<th style="text-align:center;">Required</th>
+<th style="text-align:left;">Desc</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:right;">node_id</td>
+<td style="text-align:center;">✔</td>
+<td style="text-align:left;">Create entry point on front-end.</td>
+</tr>
+<tr>
+<td style="text-align:right;">api<em>key</em>id</td>
+<td style="text-align:center;">✔</td>
+<td style="text-align:left;">Create API key on front-end.</td>
+</tr>
+<tr>
+<td style="text-align:right;">api<em>key</em>secret</td>
+<td style="text-align:center;">✔</td>
+<td style="text-align:left;">Create API key on front-end.</td>
+</tr>
+<tr>
+<td style="text-align:right;">manipulator</td>
+<td style="text-align:center;">✔</td>
+<td style="text-align:left;">Make sure the URL on front-end.</td>
+</tr>
+<tr>
+<td style="text-align:right;">ipv4_ports</td>
+<td style="text-align:center;">✔</td>
+<td style="text-align:left;">Setup IP/Port forward settings on router and put on config.</td>
+</tr>
+</tbody>
+</table>
+<pre><code class="bash language-bash">##################################################
+# Run
+npm start # debug
 
 
 ##################################################
@@ -737,6 +675,7 @@ sudo apt-get install -y nvidia-container-toolkit
 sudo service docker restart # apply to docker
 
 # Test
+docker pull nvidia/cuda:10.0-base
 docker run --gpus all -it --rm nvidia/cuda:10.0-base nvidia-smi
 </code></pre>
 <h2 id="lxclxdtodo">LXC/LXD (TODO)</h2>

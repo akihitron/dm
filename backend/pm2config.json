@@ -1,6 +1,6 @@
 {
     "name": "backend",
-    "script": "node dist/src/backend.js",
+    "script": "node dist/backend.js",
 
     "env": {
         "NODE_ENV": "development"

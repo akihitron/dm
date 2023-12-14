@@ -9,21 +9,6 @@
   "drivers": {
     "docker": {
       "end_point": null
-    },
-    "podman": {
-      "end_point": null
-    },
-    "lxd": {
-      "end_point": null
-    },
-    "kvm": {
-      "end_point": null
-    },
-    "xen": {
-      "end_point": null
-    },
-    "qemu": {
-      "end_point": null
     }
   },
   "IPv4_CheckURL": "https://api.ipify.org",

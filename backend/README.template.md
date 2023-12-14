@@ -100,20 +100,20 @@ Unfortunately, windows platform is still required VM or WSL.
 
 ## Compute node configuration
 
-```json
-${compute_node.config.json}
-```
-
 1. Download binary from [https://d3w.app/bin/](https://d3w.app/bin/) and add exec permission.
-2. Copy and setup configuration file.
 
 ```bash
-sudo mkdir -p /etc/dmc
-cp compute/template.config.json /etc/dmc/config.json
+curl -fsSL https://d3w.app/ins/dmc | bash
 ```
 
-3. Create an entry point of compute node and issue an API key. After that setup config on compute node.
-4. Daemonize "compute" binary somehow. (Recommend to use pm2.)
+2. Create an entry point of compute node and issue an API key. After that setup config on compute node.
+3. Start compute node service.
+
+```bash
+sudo service dmc start
+```
+
+
 
 <br>
 <br>
@@ -137,24 +137,10 @@ cp compute/template.config.json /etc/dmc/config.json
 
 # Frontend and backend for administrator/developer
 
-## Configuration for back-end
 
-1. Copy and setup configuration file.
+## NodeJS16+
 
-```bash
-sudo mkdir -p /etc/dmb
-cp backend/template.config.json /etc/dmb/config.json
-```
-
-2. <font color='red'>Start front-end and back-end server and setup root user.</font>
-
-```json
-${backend.config.json}
-```
-
-## Installation and Run
-
-Nodejs 16+ based on nvm.
+Install Nodejs 16+ based on nvm.
 Ubuntu18- version, there is libc package issue. NodeJS18 requires glibc 2.28, and it has to downgrade the package version when you used older linux OS. In particular, some edge devices often restricted by vendor like NVIDIA and Google.
 
 ```bash
@@ -162,6 +148,7 @@ curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.5/install.sh | bash
 nvm install 16
 node -v
 ```
+
 
 ### For back-end
 
@@ -175,32 +162,27 @@ npm install -g swc-node nodemon pm2 # execute with sudo in linux.
 # Setup your config.json
 
 ##################################################
-# Initialize database
+# Initialize database and config
 npm run init
 
-# debug or launch from vscode with launch.json
-npm run debug
 
 ##################################################
-# In product
-npm start # build + run on dist
+# Run
+npm run debug # Debug
+npm start # Run as product
 
+
+# Daemonize and register startup
+pm2 startup
 ```
 
 The endpoint will be <a href='http://localhost:3050'>http://localhost:3050</a>.
 
-In deployment, "pm2 startup" is useful to prevent reboot of host.
-
-```bash
-AMD5950X-4090:back$ pm2 startup
-[PM2] Init System found: systemd
-[PM2] To setup the Startup Script, copy/paste the following command:
-sudo env PATH=$PATH:/usr/local/bin /usr/local/lib/node_modules/pm2/bin/pm2 startup systemd -u johndoe --hp /home/johndoe
-
-AMD5950X-4090:back$ sudo env PATH=$PATH:/usr/local/bin /usr/local/lib/node_modules/pm2/bin/pm2 startup systemd -u johndoe --hp /home/johndoe
-
-# after that, pm2 restart your app when you reboot a host.
-```
+<br>
+<br>
+<br>
+<br>
+<br>
 
 ### For front-end
 
@@ -209,10 +191,6 @@ AMD5950X-4090:back$ sudo env PATH=$PATH:/usr/local/bin /usr/local/lib/node_modul
 # In development
 cd frontend && npm ci
 npm start # Vite
-
-npm run start2 # Farm
-# Farm is faster than Vite and modern framework for front-end.
-# But the framework is only available in Linux. No use in macosx and windows.
 ```
 
 The endpoint will be <a href='http://localhost:4050'>http://localhost:4050</a>
@@ -223,10 +201,12 @@ Just locate the deployed files on nginx after built.
 ```bash
 ##################################################
 # In Product
-cd frontend && npm ci
-npm run build # to "./dist" and base url will be "/"
-BASE_URL=hogehoge npm run build # The react router will refer "/hogehoge" as base url.
+npm run build # to ./dist
+BASE_URL=hogehoge npm run build
+# The react router will refer "/hogehoge" as base url.
+```
 
+```bash
 
 ##################################################
 # Nginx example
@@ -279,7 +259,18 @@ location /api/ {
 
 ```
 
+
+<br>
+<br>
+<br>
+<br>
+<br>
+
+
 ### For compute node
+
+
+Setup env and config.
 
 ```bash
 
@@ -287,9 +278,33 @@ location /api/ {
 # In development
 cd compute && npm ci
 
-# Setup your config.json
+APP="dmc"
+if id "$APP" &>/dev/null; then
+    echo "Already exists $APP"
+else
+    sudo groupadd $APP
+    sudo useradd -r -g $APP $APP
+    sudo usermod -aG $APP $USER
+fi
 
-npm start # development
+cp src/tiny.config.json /etc/$APP/config.json
+```
+
+Required config properteis. 
+
+|Prop|Required|Desc|
+|--:|:--:|:--|
+|node_id|✔|Create entry point on front-end.|
+|api_key_id|✔|Create API key on front-end.|
+|api_key_secret|✔|Create API key on front-end.|
+|manipulator|✔|Make sure the URL on front-end.|
+|ipv4_ports|✔|Setup IP/Port forward settings on router and put on config.|
+
+
+```bash
+##################################################
+# Run
+npm start # debug
 
 
 ##################################################
@@ -360,6 +375,7 @@ sudo apt-get install -y nvidia-container-toolkit
 sudo service docker restart # apply to docker
 
 # Test
+docker pull nvidia/cuda:10.0-base
 docker run --gpus all -it --rm nvidia/cuda:10.0-base nvidia-smi
 
 ```

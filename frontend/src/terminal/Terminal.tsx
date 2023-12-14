@@ -40,7 +40,7 @@ window.addEventListener("resize", () => {
 function open_websocket(term: Terminal, callback:Function) {
     if (socket == null) {
         const _socket = socket = new WebSocket(WS_URL);
-        _socket.binaryType = "arraybuffer";
+        // _socket.binaryType = "arraybuffer";
         _socket.onopen = () => {
             console.info("WebSocket connected");
             window.dispatchEvent(new Event("resize"));
@@ -63,10 +63,17 @@ function open_websocket(term: Terminal, callback:Function) {
     }
 }
 
-export default function TerminalComponent(prop: any) {
-    const node_id = prop.node_id;
-    const instance_id = prop.instance_id;
-    const channel = prop.channel;
+type TerminalComponentProps = {
+    node_id:string|null;
+    instance_id:string|null;
+    channel:string|null;
+};
+
+export default function TerminalComponent({node_id,instance_id,channel}: TerminalComponentProps) {
+    // const node_id = prop.node_id;
+    // const instance_id = prop.instance_id;
+    // const channel = prop.channel;
+    console.log(node_id,instance_id,channel);
     const ref = React.useRef<HTMLDivElement>();
     const term = terminal;
     useAsync(async () => {
@@ -84,7 +91,7 @@ export default function TerminalComponent(prop: any) {
         open_websocket(term,()=>{
             if (socket && socket.readyState === WebSocket.OPEN) {
                 console.log("open_websocket2");
-                socket.send(JSON.stringify({ event: "open", channel, instance_id, node_id, cols: term.cols, rows: term.rows }));
+                socket.send(JSON.stringify({ event: "open_terminal", channel, instance_id, node_id, cols: term.cols, rows: term.rows }));
             }
         });
 

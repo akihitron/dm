@@ -9,7 +9,7 @@
     "run1": "cross-env NODE_ENV=development vite",
     "preview": "vite build && vite preview",
     "kill": "pkill -f vite",
-    "deploy": "cross-env BASE_URL=aiit vite build && cp -r dist/* ~/datas/aiit"
+    "deploy": "cross-env BASE_URL=dm vite build && mkdir -p ~/datas/$BASE_URL && cp -r dist/* ~/datas/$BASE_URL"
   },
   "dependencies": {
     "@emotion/react": "^11.11.1",
@@ -19,7 +19,7 @@
     "@mui/icons-material": "^5.14.19",
     "@mui/lab": "^5.0.0-alpha.155",
     "@mui/material": "^5.14.20",
-    "@mui/x-data-grid": "^6.18.3",
+    "@mui/x-data-grid": "^6.18.4",
     "@stripe/react-stripe-js": "^2.4.0",
     "@stripe/stripe-js": "^2.2.0",
     "@xterm/addon-fit": "^0.9.0-beta.1",

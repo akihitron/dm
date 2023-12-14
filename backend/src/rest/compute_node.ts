@@ -1,5 +1,5 @@
 import express, { Express, Request, Response, NextFunction } from 'express';
-import { AppParams, MainContext, RejectNotLoggedIn, CheckAdmin, Node, Event, CheckJSONProperties, RejectNotLoggedInForWS } from "../global";
+import { AppParams, MainContext, RejectNotLoggedIn, CheckAdmin, Node, Event, CheckJSONProperties, RejectNotLoggedInForWS, GenerateUUID, Channel } from "../global";
 import { randomUUID } from 'crypto';
 import logger from '../logger';
 import { PrismaClient } from '@prisma/client';
@@ -341,50 +341,123 @@ export default async (context: MainContext) => {
         });
         const app_ws = app as any;
         app_ws.ws('/ws', RejectNotLoggedInForWS, (ws: WebSocket, req: Request, next: NextFunction) => {
-            ws.binaryType = "arraybuffer";
+            // ws.binaryType = "arraybuffer";
             try {
                 const user = req.session.user;
                 const email = user?.email;
                 const user_id = user?.user_id;
-
-                // Duplex
+                const is_node_ws = user?.node_id;
+                
                 // Validation check.
-
-
                 // const obj = { event: "term", data: data };
                 // ws.send(JSON.stringify(obj));
-                console.log('WebSocket connected:', email, user_id);
-                ws.on('message', (message) => {
+                logger.error('WebSocket connected:', email, user_id);
+
+                function client_ws_handler(message: string | ArrayBuffer) {
                     try {
                         if (typeof message === "string") {
                             const obj = JSON.parse(message);
                             const node_id = obj.node_id;
+                            const instance_id = obj.instance_id;
+                            const channel = obj.channel;
+                            logger.log(obj);
+                            // TODO: Check permission of node_id
+                            function send_error(error_message:string) {
+                                obj.error = error_message;
+                                ws.send(JSON.stringify(obj));
+                            }
+                            if (node_id == null) return send_error("WS:Invalid node_id:");
                             const node = NodeTable.get(node_id);
-                            if (node) {
-                                if (obj.event == "term") {
-                                    // pty.write(obj.data);
+                            if (node == null) return send_error("WS:Not connected node:");
+                            if (node.server_ws == null) return send_error("WS:Not connected server:");
 
-                                } else if (obj.event == "resize") {
-                                } else if (obj.event == "open") {
-                                    logger.success(obj);
-                                } else if (obj.event == "attach") {
-                                    // pty.write(obj.data);
-                                    // pty.resize(obj.cols, obj.rows);
-                                } else {
-                                    logger.error("WS:Unknown message:", obj);
+                            if (obj.event == "term" || obj.event == "resize") { // close
+                                const channel_ins = node.channel_table.get(channel);
+                                if (channel_ins) {
+                                    channel_ins.right_queue.push(message);
+                                    channel_ins.update();
                                 }
+                            } else if (obj.event == "open_terminal") {
+                                const channel_ins = new Channel(GenerateUUID());
+                                channel_ins.node_id = node_id;
+                                channel_ins.instance_id = instance_id;
+                                channel_ins.client_ws = ws;
+                                channel_ins.server_ws = node.server_ws;
+                                node.channel_table.set(channel_ins.id, channel_ins);
+                                channel_ins.right_queue.push(JSON.stringify({ event: obj.event, instance_id: instance_id, channel: channel_ins.id }));
+                                channel_ins.update();
+                                logger.success(obj);
                             } else {
-                                logger.warn("WS:Not ready:", node_id, "from", email, user_id, message);
+                                send_error("WS:Unknown message");
                             }
                         } else {
-                            logger.error("WS:Unknown message type:", typeof message);
+                            ws.send(JSON.stringify({error:"WS:Unknown message type"}));
                         }
                     } catch (e) {
+                        ws.send(JSON.stringify({error:"WS:Internal server error"}));
                         logger.error(e);
                     }
-                });
+                }
+                function server_ws_handler(message: string | ArrayBuffer) {
+                    try {
+                        if (typeof message === "string") {
+                            const obj = JSON.parse(message);
+                            const node_id = is_node_ws;
+                            const instance_id = obj.instance_id;
+                            const channel = obj.channel;
+                            logger.log(obj);
+
+                            function send_error(error_message:string) {
+                                obj.error = error_message;
+                                ws.send(JSON.stringify(obj));
+                            }
+
+                            // TODO: Check permission of node_id
+
+                            if (node_id == null) return send_error("WS:Invalid node_id:");
+                            const node = NodeTable.get(node_id);
+                            if (node == null) return send_error("WS:Not connected node:");
+
+                            if (obj.event == "term"||obj.event == "resize"||obj.event == "open_terminal") {
+                                const channel_ins = node.channel_table.get(channel);
+                                if (channel_ins) {
+                                    channel_ins.left_queue.push(message);
+                                    channel_ins.update();
+                                }
+                            } else {
+                                logger.error("WS:Unknown message:", obj);
+                            }
+
+                        } else {
+                            ws.send(JSON.stringify({error:"WS:Unknown message type"}));
+                        }
+                    } catch (e) {
+                        ws.send(JSON.stringify({error:"WS:Internal server error"}));
+                        logger.error(e);
+                    }
+                }
+
+
+                ws.on('message', is_node_ws ? server_ws_handler : client_ws_handler);
 
                 ws.on('close', () => {
+                    if (is_node_ws) {
+                        const n = NodeTable.get(is_node_ws);
+                        if (n == null) return logger.error("WS:Not connected node:", is_node_ws);
+                        n.channel_table.forEach((channel) => {
+                            if (channel.client_ws?.readyState == WebSocket.OPEN) {
+                                channel.client_ws.send(JSON.stringify({ event: "close", channel: channel.channel_id, instance_id: channel.instance_id, node_id:channel.node_id }));
+                            }
+                        });
+                    } else {
+
+                        // TODO: Remove channel
+                        // if (channel.client_ws?.readyState == WebSocket.OPEN) {
+                        //     channel.client_ws.send(JSON.stringify({ event: "close", channel: channel.channel_id, instance_id: channel.instance_id, node_id:channel.node_id }));
+                        // }
+
+                    }
+                    
                     console.log('WS:WebSocket closed:', email, user_id);
                 });
             } catch (e) {

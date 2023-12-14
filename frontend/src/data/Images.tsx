@@ -303,7 +303,7 @@ export default function ImagesGrid(prop: any) {
                 </>
             )}
 
-            <h1>Fetch image from remote</h1>
+            <h1 style={{ overflow: "hidden", whiteSpace: "nowrap", textOverflow: "ellipsis" }}>Fetch image from remote</h1>
             <Box>
                 <Card>
                     {fetching ? <CardHeader avatar={<CircularProgress size="1.5rem" />} title={"Image: " + fetch_target} subheader="Fetching..." /> : ""}

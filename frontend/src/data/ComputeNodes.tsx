@@ -153,8 +153,7 @@ export default function ComputeNodesGrid(prop: any) {
     const [progress, setProgress] = useState("");
     const [selected_node, setSelectedNode] = useState<any>(null);
     const [tab, changeTab] = useState(0);
-	const [channel, setChannel] = useState(U.uuidv4().replace(/-/g, ""));
-
+    const [channel, setChannel] = useState(U.uuidv4().replace(/-/g, ""));
     useEffect(() => {
         U.get("api/v1/compute_node/list")
             .then((ret: any) => {
@@ -275,7 +274,7 @@ export default function ComputeNodesGrid(prop: any) {
                 color="primary"
                 disabled={disable_submit}
             >
-                {progress && progress.length > 0 ? <CircularProgress size="1.5rem" /> : <Typography>Create an entry point</Typography>}
+                {progress && progress.length > 0 ? <CircularProgress size="1.5rem" /> : <Typography sx={{ overflow: "hidden", whiteSpace: "nowrap", textOverflow: "ellipsis" }}>Create an entry point</Typography>}
             </Button>
             <Button
                 sx={{ width: "49%", marginRight: "0%", marginTop: 3 }}
@@ -312,6 +311,22 @@ export default function ComputeNodesGrid(prop: any) {
                         ) : (
                             <>
                                 <Card sx={{ padding: 2 }}>
+
+                                    <Paper
+                                        sx={{
+                                            height: 300,
+                                            marginTop: 2,
+                                            padding: 2,
+                                            width: "100%",
+                                            backgroundColor: "#222",
+                                            overflow: "auto",
+                                            color: "#AAA",
+                                            whiteSpace: "pre-wrap",
+                                        }}
+                                    >
+                                        {progress && progress.length > 0 ? <Box sx={{display:"flex", alignItems:"center",justifyContent:"center", width:"100%",height:"100%"}}><CircularProgress size="1.5rem" /></Box> : <Typography variant="body2" component="code">{consoleLogText}</Typography>}
+                                    </Paper>
+
                                     <Button
                                         sx={{ width: "100%", marginTop: 2 }}
                                         variant="contained"
@@ -341,22 +356,6 @@ export default function ComputeNodesGrid(prop: any) {
                                         {progress && progress.length > 0 ? <CircularProgress size="1.5rem" /> : <Typography>Ping</Typography>}
                                     </Button>
 
-                                    <Paper
-                                        sx={{
-                                            height: 300,
-                                            marginTop: 2,
-                                            padding: 2,
-                                            width: "100%",
-                                            backgroundColor: "#222",
-                                            overflow: "auto",
-                                            color: "#AAA",
-                                            whiteSpace: "pre-wrap",
-                                        }}
-                                    >
-                                        <Typography variant="body2" component="code">
-                                            {consoleLogText}
-                                        </Typography>
-                                    </Paper>
                                 </Card>
                             </>
                         )}
@@ -428,7 +427,7 @@ export default function ComputeNodesGrid(prop: any) {
                 }}
             />
 
-            <ConfirmDialog open={showNodeIDConfirmDialog} title={"Created"} onSubmit={(flag: boolean) => {}} message={`A new your node id is '${a_new_node_id}'. Setup config.json on your node.`} no_cancel={true} setOpen={setNodeIDConfirmDialogVisibility} />
+            <ConfirmDialog open={showNodeIDConfirmDialog} title={"Created"} onSubmit={(flag: boolean) => { }} message={`A new your node id is '${a_new_node_id}'. Setup config.json on your node.`} no_cancel={true} setOpen={setNodeIDConfirmDialogVisibility} />
         </Box>
     );
 }
