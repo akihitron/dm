@@ -1,10 +1,17 @@
 import crypto from "crypto";
 import session from "express-session";
-import { spawn } from "child_process";
+import { spawn, exec } from "child_process";
+import util from 'util';
+
 import express, { Express, Request, Response, NextFunction } from "express";
 import instance from "rest/instance";
 import WebSocket from "ws";
 import logger from "./logger";
+
+
+const exec_p = util.promisify(exec);
+
+
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 // Application Args
@@ -89,6 +96,41 @@ export function CheckAdmin(req: Request, res: Response, next: NextFunction) {
     next();
 }
 
+
+export async function ScanPort(host: string, mn: number, mx: number, protocol: string = "tcp") {
+    const listening_ports = new Map();
+    for (let i = mn; i <= mx; i++) {
+        try {
+            if (protocol == "tcp") {
+                const scanned = await exec_p(`nc -zv ${host} ${i}`);
+                listening_ports.set(i, scanned);
+            } else {
+                // TODO: its too slower than tcp
+                const scanned = await exec_p(`nc -zvu ${host} ${i}`);
+                listening_ports.set(i, scanned);
+            }
+        } catch (e) {
+            // Ignore
+        }
+    }
+    return listening_ports;
+}
+
+export async function GetAvailablePort(port: number) {
+    for (let i = 0;i<10;i++) {
+        const listening_ports = await ScanPort("0.0.0.0", port + i, port + i, "tcp");
+        if (listening_ports.get(port+i)) {
+            logger.log(`Port ${port + i} is already in use.`);
+            continue;
+        } else {
+            return port + i;
+        }
+    }
+    throw new Error(`No available port found in range ${port} - ${port + 10}`);
+}
+
+
+
 export async function s_exe_s(command: string) {
     return new Promise((resolve, reject) => {
         const child = spawn(command, { stdio: "inherit", shell: true });
@@ -165,7 +207,7 @@ export class Event {
     // callback: undefined|(event:Event)=>void = undefined;
 }
 
-export class Channel {
+export class WSChannel {
     id: string;
     node_id: string | null = null;
     instance_id: string | null = null;
@@ -181,7 +223,7 @@ export class Channel {
         if (this.client_ws) {
             if (this.left_queue.length > 0) {
                 for (const data of this.left_queue) {
-                    this.client_ws.send(JSON.stringify(data));
+                    this.client_ws.send(data);
                 }
                 this.left_queue = [];
             }
@@ -189,7 +231,7 @@ export class Channel {
         if (this.server_ws) {
             if (this.right_queue.length > 0) {
                 for (const data of this.right_queue) {
-                    this.server_ws.send(JSON.stringify(data));
+                    this.server_ws.send(data);
                 }
                 this.right_queue = [];
             }
@@ -201,7 +243,7 @@ export class Node {
     node_id: string | null = null;
     event_table: Map<string, Event> = new Map();
 
-    channel_table: Map<string, Channel> = new Map();
+    channel_table: Map<string, WSChannel> = new Map();
 
     server_ws: WebSocket | null = null;
     

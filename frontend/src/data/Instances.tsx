@@ -1063,7 +1063,7 @@ export default function InstancesGrid(prop: any) {
 
             {tab == 3 ? (
                 <Box sx={{ boxShadow: "0px 0px 2px black" }}>
-                    <TerminalComponent />
+                    <TerminalComponent node_id={selected_instance.node_id} instance_id={selected_instance.id} />
                 </Box>
             ) : (
                 ""

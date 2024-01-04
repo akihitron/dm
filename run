@@ -5,6 +5,7 @@ if [ $# -eq 0 ]; then
   exit 1
 fi
 
+
 arg_f=false
 arg_b=false
 arg_c=false
@@ -39,6 +40,9 @@ while [ "$#" -gt 0 ]; do
   esac
   shift
 done
+
+set -x
+
 
 if $arg_f; then
   cd frontend
@@ -99,3 +103,6 @@ if $arg_all; then
   cd compute
   npm start
 fi
+
+
+set +x

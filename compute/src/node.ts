@@ -7,9 +7,10 @@ import process from "node:process";
 import commandExists from "command-exists";
 import assert from "assert";
 import WebSocket from "ws";
-import pty from "node-pty";
-import G, {WSChannel} from "./global";
+import G, { WSChannel } from "./global";
 import logger from "./logger";
+
+import * as pty from "node-pty";
 
 import { Driver, CreateDriver } from "./drivers/driver";
 import os_util from "os-utils";
@@ -37,12 +38,12 @@ export class ComputeNode {
         return this.driver.test();
     }
 
-    
+
 
     observe_websocket(url: string) {
         if (this.web_socket_is_observing) return;
         this.web_socket_is_observing = true;
-        logger.error("observe_websocket:",url);
+        logger.error("observe_websocket:", url);
         const WSChannelTable = this.WSChannelTable;
         const ORIGIN_URL_OBJ = new URL(url);
         const WS_PROTOCOL = ORIGIN_URL_OBJ.protocol == "https:" ? "wss:" : "ws:";
@@ -51,24 +52,32 @@ export class ComputeNode {
         const ws = new WebSocket(WS_URL, {
             headers: { Cookie: G.GetClientCookie() }
         });
+        ws.addEventListener("error", (event) => {
+            console.log("WebSocket error: ", event);
+        });
+
 
         ws.on("open", () => {
             logger.log("WS:open");
+            ws.send(JSON.stringify({ event: "ping" }));
         });
-        
+
         ws.on("error", (e) => {
             logger.error("WS:error", e);
         });
-        
+
         ws.on("message", (data: string) => {
-            logger.error(data);
             try {
-                const j = JSON.parse(data);
+                const s_data = data.toString();
+                const j = JSON.parse(s_data);
                 const event = j.event;
                 const node_id = j.node_id;
                 const instance_id = j.instance_id;
                 const channel_id = j.channel_id;
                 const instance_key = j.instance_key;
+                // logger.error(j);
+                // console.log(j,s_data);
+                // logger.log("---------------------------------------------------------",event);
 
                 if (event == "term") {
                     const channel_ins = WSChannelTable.get(channel_id);
@@ -81,9 +90,11 @@ export class ComputeNode {
                         channel_ins.term.resize(j.cols, j.rows);
                     }
                 } else if (event == "open_terminal") {
+                    // logger.log("---------------------------------------------------------",event);
                     const channel_ins = new WSChannel(channel_id, node_id, instance_id);
                     WSChannelTable.set(channel_id, channel_ins);
                     if (instance_id) {
+                        logger.info("Open Instance:", instance_id, ":", instance_key, ":", channel_id);
                         const term = pty.spawn(
                             "docker",
                             ["exec", "-it", instance_key, "/bin/bash"],
@@ -99,10 +110,11 @@ export class ComputeNode {
                             term.write(data.toString());
                         });
                         term.onData((data: any) => {
-                            ws.send(JSON.stringify({ event: "term", node_id: node_id, instance_id: instance_id, channel: channel_id, data: data }));
+                            ws.send(JSON.stringify({ event: "term", node_id: node_id, instance_id: instance_id, channel_id: channel_id, data: data }));
                         });
                         channel_ins.term = term;
                     } else {
+                        logger.info("Open Node Terminal:", node_id, ":", channel_id);
                         const term = pty.spawn(
                             'bash', [],
                             {
@@ -117,10 +129,17 @@ export class ComputeNode {
                             term.write(data.toString());
                         });
                         term.onData((data: any) => {
-                            ws.send(JSON.stringify({ event: "term", node_id: node_id, instance_id: instance_id, channel: channel_id, data: data }));
+                            ws.send(JSON.stringify({ event: "term", node_id: node_id, instance_id: instance_id, channel_id: channel_id, data: data }));
                         });
                         channel_ins.term = term;
                     }
+                    ws.send(s_data);
+
+                } else if (event == "pong") {
+                    logger.log("WS:pong");
+                } else if (event == "ping") {
+                    logger.log("WS:ping");
+                    ws.send(JSON.stringify({ event: "pong" }));
                 } else if (event == "close") {
                     const channel_ins = WSChannelTable.get(channel_id);
                     if (channel_ins) {
@@ -135,9 +154,10 @@ export class ComputeNode {
 
         ws.on("close", (e) => {
             logger.log("WS:close", e);
+            this.web_socket_is_observing = false;
             setTimeout(() => {
                 this.observe_websocket(url);
-            }, 5000);
+            }, 2000);
         });
 
         this.ws = ws;

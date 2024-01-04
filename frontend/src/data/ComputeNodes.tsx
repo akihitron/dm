@@ -153,7 +153,6 @@ export default function ComputeNodesGrid(prop: any) {
     const [progress, setProgress] = useState("");
     const [selected_node, setSelectedNode] = useState<any>(null);
     const [tab, changeTab] = useState(0);
-    const [channel, setChannel] = useState(U.uuidv4().replace(/-/g, ""));
     useEffect(() => {
         U.get("api/v1/compute_node/list")
             .then((ret: any) => {
@@ -396,7 +395,7 @@ export default function ComputeNodesGrid(prop: any) {
 
             {tab == 2 && selected_node != null ? (
                 <Box sx={{ boxShadow: "0px 0px 2px black" }}>
-                    <TerminalComponent node_id={selected_node.id} instance_id={null} channel={channel} />
+                    <TerminalComponent node_id={selected_node.id} instance_id={null} />
                 </Box>
             ) : (
                 ""

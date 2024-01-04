@@ -9,7 +9,7 @@ import expressWs from "express-ws";
 import showdown from "showdown";
 import configure from "./setup";
 import { createStream } from "rotating-file-stream";
-import { AppParams, GenerateSalt, HashPassword, MainContext, s_exe_s } from "./global";
+import { AppParams, GenerateSalt, HashPassword, MainContext, GetAvailablePort } from "./global";
 import ComputeNodeAPI from "./rest/compute_node";
 import ImageAPI from "./rest/image";
 import InstanceAPI from "./rest/instance";
@@ -109,13 +109,13 @@ async function main(params: AppParams) {
 
         const livereload = await import("livereload");
         const connectLiveReload = require("connect-livereload");
-        const liveReloadServer = livereload.createServer();
+        const liveReloadServer = livereload.createServer({port:await GetAvailablePort(36241)});
         liveReloadServer.server.once("connection", () => {
             setTimeout(() => {
                 liveReloadServer.refresh("./");
             }, 100);
         });
-        app.use(connectLiveReload());
+        app.use(connectLiveReload({port:liveReloadServer.config.port}));
         SIGTERM_FUNCS.push(() => liveReloadServer.close());
     } else {
         const logDirectory = path.join("/var/log/", app_name, "app.log");
