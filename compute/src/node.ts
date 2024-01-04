@@ -43,11 +43,11 @@ export class ComputeNode {
     observe_websocket(url: string) {
         if (this.web_socket_is_observing) return;
         this.web_socket_is_observing = true;
-        logger.error("observe_websocket:", url);
         const WSChannelTable = this.WSChannelTable;
         const ORIGIN_URL_OBJ = new URL(url);
         const WS_PROTOCOL = ORIGIN_URL_OBJ.protocol == "https:" ? "wss:" : "ws:";
         const WS_URL = `${WS_PROTOCOL}//${ORIGIN_URL_OBJ.host}${ORIGIN_URL_OBJ.pathname}ws/`;
+        logger.warn("observe_websocket:", WS_URL);
 
         const ws = new WebSocket(WS_URL, {
             headers: { Cookie: G.GetClientCookie() }
@@ -94,7 +94,13 @@ export class ComputeNode {
                     const channel_ins = new WSChannel(channel_id, node_id, instance_id);
                     WSChannelTable.set(channel_id, channel_ins);
                     if (instance_id) {
+                        logger.log("instance_key:", instance_key, typeof instance_key);
                         logger.info("Open Instance:", instance_id, ":", instance_key, ":", channel_id);
+                        if (instance_key == null) {
+                            j.error = "Instance key is null.";
+                            ws.send(JSON.stringify(j));
+                            return;
+                        }
                         const term = pty.spawn(
                             "docker",
                             ["exec", "-it", instance_key, "/bin/bash"],

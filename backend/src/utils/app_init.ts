@@ -37,7 +37,7 @@ export async function initialize(app_params: AppParams) {
           "driver": "sqlite",
           "drivers": {
             "sqlite": {
-                "end_point": "file:${path.join(data_directory, 'sqlite.db')}"
+                "end_point": "file:${path.join(data_directory, 'sqlite.db?connection_limit=1')}"
             }
           }
         },

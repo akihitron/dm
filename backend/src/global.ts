@@ -211,6 +211,7 @@ export class WSChannel {
     id: string;
     node_id: string | null = null;
     instance_id: string | null = null;
+    instance_key: string | null = null;
     left_queue: Array<any> = [];
     right_queue: Array<any> = [];
     last_updated: number = Date.now();

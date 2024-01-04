@@ -9,7 +9,7 @@
     "run1": "cross-env NODE_ENV=development vite",
     "preview": "vite build && vite preview",
     "kill": "pkill -f vite",
-    "deploy": "cross-env BASE_URL=dm vite build && mkdir -p ~/datas/$BASE_URL && cp -r dist/* ~/datas/$BASE_URL"
+    "deploy": "cross-env BASE_URL=dm vite build && mkdir -p ~/datas/dm && cp -r dist/* ~/datas/dm"
   },
   "dependencies": {
     "@emotion/react": "^11.11.3",

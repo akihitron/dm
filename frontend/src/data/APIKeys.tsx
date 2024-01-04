@@ -6,6 +6,9 @@ import { Button, CircularProgress, Paper, TextField, Typography } from "@mui/mat
 
 import ConfirmDialog from "../ConfirmDialog";
 
+
+const pathJoin = (parts:Array<string>, sep='/') => parts.join(sep).replace(new RegExp(sep+'{1,}', 'g'), sep);
+
 const BASE_URL = import.meta.env.BASE_URL;
 
 const columns: GridColDef[] = [
@@ -176,7 +179,7 @@ export default function APIKeys(prop: any) {
             >
                 <Typography variant="body2" component="code">
                     {window.location.origin}
-                    {BASE_URL}api/
+                    {pathJoin([BASE_URL,"api/"])}
                 </Typography>
             </Paper>
 

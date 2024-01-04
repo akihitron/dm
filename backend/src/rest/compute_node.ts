@@ -340,7 +340,7 @@ export default async (context: MainContext) => {
             }
         });
         const app_ws = app as any;
-        app_ws.ws('/ws', RejectNotLoggedInForWS, (ws: WebSocket, req: Request, next: NextFunction) => {
+        app_ws.ws('/ws/', RejectNotLoggedInForWS, (ws: WebSocket, req: Request, next: NextFunction) => {
             // ws.binaryType = "arraybuffer";
             try {
                 const user = req.session.user;
@@ -368,7 +368,7 @@ export default async (context: MainContext) => {
                     logger.log("WebSocket error: ", event);
                   });
                   
-                function client_ws_handler(message: string | ArrayBuffer) {
+                async function client_ws_handler(message: string | ArrayBuffer) {
                     try {
                         if (typeof message === "string") {
                             const obj = JSON.parse(message);
@@ -407,7 +407,22 @@ export default async (context: MainContext) => {
                                     channel_ins.client_ws = ws;
                                     channel_ins.server_ws = node.server_ws;
                                     node.channel_table.set(channel_ins.id, channel_ins);
-                                    channel_ins.right_queue.push(JSON.stringify({ event: event, instance_id: instance_id, channel_id: channel_ins.id }));
+
+                                    let has_error = false;
+                                    if (instance_id) {
+                                        const instance = await ORM.instance.findFirst({ where: { id: instance_id } });
+                                        if (instance?.key) {
+                                            channel_ins.instance_key = instance.key;
+                                        } else {
+                                            has_error = true;
+                                            logger.error("WS:Instance is not registered:", instance_id);
+                                        }
+                                    }
+                                    if (has_error) {
+                                        channel_ins.left_queue.push(JSON.stringify({ error: "Does not have an instance.",event: event, instance_id: instance_id, channel_id: channel_ins.id }));
+                                    } else {
+                                        channel_ins.right_queue.push(JSON.stringify({ event: event, instance_id: instance_id, instance_key:channel_ins.instance_key, channel_id: channel_ins.id }));
+                                    }
                                     channel_ins.update();
                                     logger.success(obj);
                                 } else if (event == "pong") {
@@ -426,7 +441,7 @@ export default async (context: MainContext) => {
                         logger.error(e);
                     }
                 }
-                function server_ws_handler(message: string | ArrayBuffer) {
+                async function server_ws_handler(message: string | ArrayBuffer) {
                     try {
                         if (typeof message === "string") {
                             const obj = JSON.parse(message);

@@ -10,10 +10,13 @@ import { useAsync } from "react-use";
 import { Button } from "@mui/material";
 // import { Unicode11Addon } from '@xterm/addon-unicode11';
 
+const pathJoin = (parts:Array<string>, sep='/') => parts.join(sep).replace(new RegExp(sep+'{1,}', 'g'), sep);
+
+
 const BASE_URL = import.meta.env.BASE_URL;
 const ORIGIN_URL_OBJ = new URL(window.location.origin);
 const WS_PROTOCOL = ORIGIN_URL_OBJ.protocol == "https:" ? "wss:" : "ws:";
-const WS_URL = `${WS_PROTOCOL}//${ORIGIN_URL_OBJ.host}${BASE_URL}api/ws/`;
+const WS_URL = `${WS_PROTOCOL}//${ORIGIN_URL_OBJ.host}${pathJoin([BASE_URL,'api/ws/'])}`;
 
 const fitAddon = new FitAddon();
 const webLinksAddon = new WebLinksAddon();
