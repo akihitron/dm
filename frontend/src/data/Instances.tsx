@@ -406,6 +406,8 @@ export default function InstancesGrid(prop: any) {
             })
             .catch((e) => console.error(e));
     }, [needsUpdate]);
+    // console.log(selected_instance);
+
 
     return (
         <Box sx={{ width: "100%", marginBottom: 10 }}>
@@ -1063,7 +1065,7 @@ export default function InstancesGrid(prop: any) {
 
             {tab == 3 ? (
                 <Box sx={{ boxShadow: "0px 0px 2px black" }}>
-                    <TerminalComponent node_id={selected_instance.node_id} instance_id={selected_instance.id} />
+                    <TerminalComponent node_id={selected_instance.node_id} instance_id={selected_instance.id} is_instance_terminal={true} />
                 </Box>
             ) : (
                 ""

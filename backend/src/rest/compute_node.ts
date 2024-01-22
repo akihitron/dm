@@ -366,8 +366,8 @@ export default async (context: MainContext) => {
                 // ws.send(JSON.stringify(obj));
                 ws.addEventListener("error", (event) => {
                     logger.log("WebSocket error: ", event);
-                  });
-                  
+                });
+
                 async function client_ws_handler(message: string | ArrayBuffer) {
                     try {
                         if (typeof message === "string") {
@@ -378,7 +378,7 @@ export default async (context: MainContext) => {
                             const event = obj.event;
                             // logger.log(obj);
                             // TODO: Check permission of node_id
-                            function send_error(error_message:string) {
+                            function send_error(error_message: string) {
                                 obj.error = error_message;
                                 ws.send(JSON.stringify(obj));
                             }
@@ -388,56 +388,70 @@ export default async (context: MainContext) => {
                             if (node == null) return send_error("WS:Not connected node:");
                             // logger.log("-----------------------", event, "-----------------------");
                             if (node.server_ws == null) return send_error("WS:Not connected server:");
-                                // logger.log("-----------------------", event, "-----------------------");
-                                // --------------------------- Client Handler ---------------------------
-                                if (event == "term" || event == "resize") { // close
-                                    const channel_ins = node.channel_table.get(channel_id);
-                                    // logger.log("-------------", channel_id, "-------------");
-                                    // node.channel_table.forEach((v,k)=>{
-                                    //     logger.log(k);
-                                    // });
-                                    if (channel_ins) {
-                                        channel_ins.right_queue.push(message);
-                                        channel_ins.update();
-                                    }
-                                } else if (event == "open_terminal") {
-                                    const channel_ins = new WSChannel(GenerateUUID());
-                                    channel_ins.node_id = node_id;
-                                    channel_ins.instance_id = instance_id;
-                                    channel_ins.client_ws = ws;
-                                    channel_ins.server_ws = node.server_ws;
-                                    node.channel_table.set(channel_ins.id, channel_ins);
-
-                                    let has_error = false;
-                                    if (instance_id) {
-                                        const instance = await ORM.instance.findFirst({ where: { id: instance_id } });
-                                        if (instance?.key) {
-                                            channel_ins.instance_key = instance.key;
-                                        } else {
-                                            has_error = true;
-                                            logger.error("WS:Instance is not registered:", instance_id);
-                                        }
-                                    }
-                                    if (has_error) {
-                                        channel_ins.left_queue.push(JSON.stringify({ error: "Does not have an instance.",event: event, instance_id: instance_id, channel_id: channel_ins.id }));
-                                    } else {
-                                        channel_ins.right_queue.push(JSON.stringify({ event: event, instance_id: instance_id, instance_key:channel_ins.instance_key, channel_id: channel_ins.id }));
-                                    }
-                                    channel_ins.update();
-                                    logger.success(obj);
-                                } else if (event == "pong") {
-                                    logger.log("pong");
-                                } else if (event == "ping") {
-                                    logger.log("ping");
-                                    ws.send(JSON.stringify({ event: "pong" }));
-                                } else {
-                                    send_error("WS:Unknown message");
+                            // logger.log("-----------------------", event, "-----------------------");
+                            const now = Date.now();
+                            for (const k in node.channel_table) {
+                                const channel = node.channel_table.get(k);
+                                if (channel == null) node.channel_table.delete(k);
+                                if (channel) {
+                                    const s = now - channel.server_timestamp;
+                                    const c = now - channel.client_timestamp;
+                                    if (s > 60000 || c > 60000) {
+                                        node.channel_table.delete(k);
+                                        logger.info(`Destroyed channel: ${k}`);
+                                   }
                                 }
+                            }
+                            // --------------------------- Client Handler ---------------------------
+                            if (event == "term" || event == "resize") { // close
+                                const channel_ins = node.channel_table.get(channel_id);
+                                // logger.log("-------------", channel_id, "-------------");
+                                // node.channel_table.forEach((v,k)=>{
+                                //     logger.log(k);
+                                // });
+                                if (channel_ins) {
+                                    channel_ins.right_queue.push(message);
+                                    channel_ins.update();
+                                }
+                            } else if (event == "open_terminal") {
+                                const channel_ins = new WSChannel(GenerateUUID());
+                                channel_ins.node_id = node_id;
+                                channel_ins.instance_id = instance_id;
+                                channel_ins.client_ws = ws;
+                                channel_ins.server_ws = node.server_ws;
+                                node.channel_table.set(channel_ins.id, channel_ins);
+                                logger.log("Terminals:", node.channel_table.size);
+
+                                let has_error = false;
+                                if (instance_id) {
+                                    const instance = await ORM.instance.findFirst({ where: { id: instance_id } });
+                                    if (instance?.key) {
+                                        channel_ins.instance_key = instance.key;
+                                    } else {
+                                        has_error = true;
+                                        logger.error("WS:Instance is not registered:", instance_id);
+                                    }
+                                }
+                                if (has_error) {
+                                    channel_ins.left_queue.push(JSON.stringify({ error: "Does not have an instance.", event: event, instance_id: instance_id, channel_id: channel_ins.id }));
+                                } else {
+                                    channel_ins.right_queue.push(JSON.stringify({ event: event, instance_id: instance_id, instance_key: channel_ins.instance_key, channel_id: channel_ins.id }));
+                                }
+                                channel_ins.update();
+                                logger.success(obj);
+                            } else if (event == "pong") {
+                                logger.log("pong");
+                            } else if (event == "ping") {
+                                logger.log("ping");
+                                ws.send(JSON.stringify({ event: "pong" }));
+                            } else {
+                                send_error("WS:Unknown message");
+                            }
                         } else {
-                            ws.send(JSON.stringify({error:"WS:Unknown message type"}));
+                            ws.send(JSON.stringify({ error: "WS:Unknown message type" }));
                         }
                     } catch (e) {
-                        ws.send(JSON.stringify({error:"WS:Internal server error"}));
+                        ws.send(JSON.stringify({ error: "WS:Internal server error" }));
                         logger.error(e);
                     }
                 }
@@ -451,7 +465,7 @@ export default async (context: MainContext) => {
                             const channel_id = obj.channel_id;
                             // logger.log(obj);
 
-                            function send_error(error_message:string) {
+                            function send_error(error_message: string) {
                                 obj.error = error_message;
                                 ws.send(JSON.stringify(obj));
                             }
@@ -461,10 +475,21 @@ export default async (context: MainContext) => {
                             if (node_id == null) return send_error("WS:Invalid node_id:");
                             const node = NodeTable.get(node_id);
                             if (node == null) return send_error("WS:Not connected node:");
-
+                            const now = Date.now();
+                            for (const k in node.channel_table) {
+                                const channel = node.channel_table.get(k);
+                                if (channel == null) node.channel_table.delete(k);
+                                if (channel) {
+                                    const s = now - channel.server_timestamp;
+                                    const c = now - channel.client_timestamp;
+                                    if (s > 60000 || c > 60000) {
+                                        logger.info(`Destroyed channel: ${k}`);
+                                   }
+                                }
+                            }
                             // --------------------------- Server Handler ---------------------------
                             // logger.info(event);
-                            if (event == "term"||event == "resize"||event == "open_terminal") {
+                            if (event == "term" || event == "resize" || event == "open_terminal") {
                                 const channel_ins = node.channel_table.get(channel_id);
                                 if (channel_ins) {
                                     channel_ins.left_queue.push(message);
@@ -480,10 +505,10 @@ export default async (context: MainContext) => {
                             }
 
                         } else {
-                            ws.send(JSON.stringify({error:"WS:Unknown message type"}));
+                            ws.send(JSON.stringify({ error: "WS:Unknown message type" }));
                         }
                     } catch (e) {
-                        ws.send(JSON.stringify({error:"WS:Internal server error"}));
+                        ws.send(JSON.stringify({ error: "WS:Internal server error" }));
                         logger.error(e);
                     }
                 }
@@ -497,7 +522,7 @@ export default async (context: MainContext) => {
                         if (n == null) return logger.error("WS:Not connected node:", is_node_ws);
                         n.channel_table.forEach((channel) => {
                             if (channel.client_ws?.readyState == WebSocket.OPEN) {
-                                channel.client_ws.send(JSON.stringify({ event: "close", channel: channel.id, instance_id: channel.instance_id, node_id:channel.node_id }));
+                                channel.client_ws.send(JSON.stringify({ event: "close", channel: channel.id, instance_id: channel.instance_id, node_id: channel.node_id }));
                             }
                         });
                     } else {
@@ -508,7 +533,7 @@ export default async (context: MainContext) => {
                         // }
 
                     }
-                    
+
                     logger.log('WS:WebSocket closed:', email, user_id);
                 });
             } catch (e) {

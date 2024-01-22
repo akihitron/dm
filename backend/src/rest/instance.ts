@@ -469,7 +469,7 @@ export default async (context: MainContext) => {
             const records = JSON.parse(JSON.stringify(Array.from(instance_table, ([id, obj]) => obj)));
             {
                 // Find images and specify image name.
-                console.log(records);
+                // logger.log(records);
                 const image_ids = records.filter((n: any) => n.image_id).map((n: any) => n.image_id);
                 const images = await ORM.image.findMany({ where: { id: { in: image_ids } } });
                 const image_table = new Map<string, any>();

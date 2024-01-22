@@ -380,11 +380,24 @@ export default function ComputeNodesGrid(prop: any) {
                                     boxShadow: "0px 0px 2px black",
                                 }}
                             >
-                                {Object.keys(selected_node).map((k: string, i: number) => (
-                                    <Typography key={i}>
-                                        {k} : {selected_node[k]}
-                                    </Typography>
-                                ))}
+                                    <Typography>NodeID: {selected_node.id}</Typography>
+                                    <Typography>Name: {selected_node.name}</Typography>
+                                    <Typography>Status: {selected_node.status}</Typography>
+                                    <Typography>IPv4({selected_node.use_ipv4?"✔":"-"}): {selected_node.ipv4}</Typography>
+                                    <Typography>IPv4 ports: {selected_node.ipv4_ports}</Typography>
+                                    <Typography>IPv6({selected_node.use_ipv6?"✔":"-"}): {selected_node.ipv6}</Typography>
+                                    <Typography>IPv6 ports: {selected_node.ipv6_ports}</Typography>
+                                    <Typography>CPU: {selected_node.cpu} ({selected_node.arch})</Typography>
+                                    <Typography>CPU info: {selected_node.cpu_info}</Typography>
+                                    <Typography>Platform: {selected_node.platform}</Typography>
+                                    <Typography>Memory: {selected_node.memory}</Typography>
+                                    <Typography>GPU({selected_node.available_as_gpu_node?"✔":"-"}): {selected_node.gpu}</Typography>
+                                    <Typography>GPU driver: {selected_node.gpu_driver}</Typography>
+                                    <Typography>GPU info: {selected_node.gpu_info}</Typography>
+                                    <Typography>nvidia-docker: {selected_node.nvidia_docker}</Typography>
+                                    <Typography>ManipulatorDriver: {selected_node.manipulator_driver}</Typography>
+                                    <Typography>Storage: {selected_node.storage}</Typography>
+                                    <Typography>Date: {selected_node.created_at}</Typography>
                             </Paper>
                         </CardContent>
                     </Card>
@@ -395,7 +408,7 @@ export default function ComputeNodesGrid(prop: any) {
 
             {tab == 2 && selected_node != null ? (
                 <Box sx={{ boxShadow: "0px 0px 2px black" }}>
-                    <TerminalComponent node_id={selected_node.id} instance_id={null} />
+                    <TerminalComponent node_id={selected_node.id} instance_id={null} is_instance_terminal={false} />
                 </Box>
             ) : (
                 ""

@@ -228,6 +228,30 @@ model port_map {
   @@index([node_id], name: "port_map_node_id_index")
 }
 
+model compute_node_chat {
+  id         String   @id @default(cuid())
+  node_id    String
+  user_id    String
+  user_name  String
+  message    String
+  created_at DateTime @default(now())
+
+  @@index([node_id], name: "compute_node_chat_node_id_index")
+  @@index([user_id], name: "compute_node_chat_user_id_index")
+}
+
+model instance_chat {
+  id          String   @id @default(cuid())
+  instance_id String
+  user_id     String
+  user_name   String
+  message     String
+  created_at  DateTime @default(now())
+
+  @@index([instance_id], name: "instance_chat_instance_id_index")
+  @@index([user_id], name: "instance_chat_user_id_index")
+}
+
 model log {
   id          String   @id @default(cuid())
   title       String?

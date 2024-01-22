@@ -4,53 +4,21 @@ import { useEffect, useRef, useState } from "react";
 
 import { Terminal } from "xterm";
 import { FitAddon } from "@xterm/addon-fit";
-// import {SearchAddon} from '@xterm/addon-search';
 import { WebLinksAddon } from "@xterm/addon-web-links";
 import { useAsync } from "react-use";
 import { Button } from "@mui/material";
 // import { Unicode11Addon } from '@xterm/addon-unicode11';
 
-const pathJoin = (parts:Array<string>, sep='/') => parts.join(sep).replace(new RegExp(sep+'{1,}', 'g'), sep);
+const pathJoin = (parts: Array<string>, sep = '/') => parts.join(sep).replace(new RegExp(sep + '{1,}', 'g'), sep);
 
 
 const BASE_URL = import.meta.env.BASE_URL;
 const ORIGIN_URL_OBJ = new URL(window.location.origin);
 const WS_PROTOCOL = ORIGIN_URL_OBJ.protocol == "https:" ? "wss:" : "ws:";
-const WS_URL = `${WS_PROTOCOL}//${ORIGIN_URL_OBJ.host}${pathJoin([BASE_URL,'api/ws/'])}`;
+const WS_URL = `${WS_PROTOCOL}//${ORIGIN_URL_OBJ.host}${pathJoin([BASE_URL, 'api/ws/'])}`;
 
 const fitAddon = new FitAddon();
 const webLinksAddon = new WebLinksAddon();
-// const searchAddon = new SearchAddon();
-// const unicode11Addon = new Unicode11Addon();
-// let terminal: Terminal|null = null;
-// Terminal.element.addEventListener
-// terminal.attachCustomKeyEventHandler((e) => {
-
-// });
-// terminal.onKey((e) => {
-//     console.log(e);
-//     e.domEvent.preventDefault();
-//     e.domEvent.stopPropagation()
-// if (e.domEvent.code === "ESCAPE") { 
-
-//     }
-//   });
-// document.addEventListener("keydown", (e) => {
-//     if (e.key === "Escape") {
-//         console.log(e.key);
-//         e.preventDefault();
-//     }
-// });
-// document.addEventListener("keyup", (e) => {
-//     if (e.key === "Escape") {
-//         console.log(e.key);
-//         e.preventDefault();
-//     }
-// });
-
-
-// let socket: WebSocket | null = null;
-// Socket:Channel = 1:*
 
 
 window.addEventListener("resize", () => {
@@ -61,91 +29,100 @@ window.addEventListener("resize", () => {
 type TerminalComponentProps = {
     node_id: string | null;
     instance_id: string | null;
+    is_instance_terminal: boolean;
 };
 
-class TestA {
-    constructor() {
-        console.log("TestA");
+class TerminalInstance {
+    socket: WebSocket | null = null;
+    terminal: Terminal | null = null;
+    dom: HTMLDivElement | null = null;
+    channel_id: string | null = null;
+    node_id: string | null = null;
+    instance_id: string | null = null;
+    is_instance_terminal: boolean = false;
+
+    constructor(is_instance_terminal: boolean) {
+        this.is_instance_terminal = is_instance_terminal;
     }
-    test() {
-        console.log("test");
-    }
-
-}
-
-export default function TerminalComponent({ node_id, instance_id }: TerminalComponentProps) {
-    // const node_id = prop.node_id;
-    // const instance_id = prop.instance_id;
-    // const channel = prop.channel;
-    // console.log(node_id, instance_id);
-    const ref = useRef<HTMLDivElement>();
-    const [testA, setTestA] = useState(Math.random());
-    const [channel_id, setChannelId] = useState<string | null>(null);
-    const socketRef = useRef<WebSocket>();
-    const terminalRef = useRef<Terminal>();
-    console.log(testA);
-
-    useEffect(() => {
-        console.log("new terminal");
-
-        const dom = ref.current;
-        //if (node_id&&instance_id&&channel_id) return;
-        // dom.innerHTML = "";
-        // if (dom.children.length > 0) return;
 
 
-        // console.log("new terminal1");_
 
-        if (!terminalRef.current && dom) {
-            // console.log("new terminal2");
-            const _socket = new WebSocket(WS_URL);
-            socketRef.current = _socket;
+    handler(
+        dom: HTMLDivElement | null | undefined,
+        ws_url: string,
+        node_id: string | null = null,
+        instance_id: string | null = null,
+    ) {
+        const scope = this;
 
-            const terminal = new Terminal({
+
+        if (dom != scope.dom || scope.node_id != node_id || scope.instance_id != instance_id) {
+            console.log("dom != scope.dom");
+            scope.socket?.close();
+            scope.socket = null;
+            scope.terminal?.dispose();
+            scope.terminal = null;
+            scope.channel_id = null;
+            scope.dom = null;
+        }
+
+        scope.node_id = node_id;
+        scope.instance_id = instance_id;
+
+        if (dom && scope.terminal == null) {
+            console.warn("new Terminal");
+            dom.innerHTML = "";
+            scope.terminal = new Terminal({
                 fontFamily: "courier-new, courier, monospace",
                 fontWeight: undefined,
                 fontSize: 14,
                 screenKeys: true, // Prevent esq key, and some other keys from being handled by the browser
                 allowProposedApi: true,
             } as any);
-            terminalRef.current = terminal;
-            terminal.loadAddon(fitAddon);
-            terminal.loadAddon(webLinksAddon);
-            terminal.open(dom);
+            scope.terminal.loadAddon(fitAddon);
+            scope.terminal.loadAddon(webLinksAddon);
+            scope.terminal.open(dom);
+            scope.terminal.onData((data) => {
+                const socket = scope.socket;
+                const channel_id = scope.channel_id;
+                const instance_id = scope.instance_id;
+                const node_id = scope.node_id;
+                if (socket && socket.readyState === WebSocket.OPEN && channel_id) {
+                    socket.send(JSON.stringify({ event: "term", channel_id, instance_id, node_id, data }));
+                }
+            });
+            scope.terminal.onResize((size) => {
+                const socket = scope.socket;
+                const channel_id = scope.channel_id;
+                const instance_id = scope.instance_id;
+                const node_id = scope.node_id;
+                if (socket && socket.readyState === WebSocket.OPEN && channel_id) {
+                    socket.send(JSON.stringify({ event: "resize", channel_id, instance_id, node_id, cols: size.cols, rows: size.rows }));
+                }
+            });
+            window.dispatchEvent(new Event("resize"));
+            this.dom = dom;
         }
-        
-        if (terminalRef.current && socketRef.current) {
-            const terminal = terminalRef.current;
-            const _socket = socketRef.current;
-            terminal.element?.addEventListener("blur", (e) => {
-                console.log("blur", e);
-            });
-
-            terminal.onData((data) => {
-                // console.log("terminal.onData",data, _socket?.readyState === WebSocket.OPEN, channel_id);
-                if (_socket && _socket.readyState === WebSocket.OPEN && channel_id) {
-                    _socket.send(JSON.stringify({ event: "term", channel_id, instance_id, node_id, data }));
-                }
-            });
-            terminal.onResize((size) => {
-                console.log("terminal.onResize",size);
-                if (_socket && _socket.readyState === WebSocket.OPEN && channel_id) {
-                    _socket.send(JSON.stringify({ event: "resize", channel_id, instance_id, node_id, cols: size.cols, rows: size.rows }));
-                }
-            });
 
 
-            // _socket.binaryType = "arraybuffer";
-            _socket.onopen = () => {
-                console.info("_socket.onopen", "WebSocket connected");
-                if (terminal && _socket && _socket.readyState === WebSocket.OPEN) {
+
+        if (node_id && ((scope.is_instance_terminal == false) || (scope.is_instance_terminal && scope.instance_id)) && scope.socket == null && scope.terminal) {
+            scope.socket = new WebSocket(ws_url);
+            scope.socket.onopen = () => {
+                console.log("new WebSocket");
+                const socket = scope.socket;
+                const instance_id = scope.instance_id;
+                const node_id = scope.node_id;
+                const terminal = scope.terminal;
+                if (terminal && socket && socket.readyState === WebSocket.OPEN) {
                     const event = { event: "open_terminal", instance_id, node_id, cols: terminal.cols, rows: terminal.rows };
-                    console.log(event);
-                    _socket.send(JSON.stringify(event));
+                    // console.log(event);
+                    socket.send(JSON.stringify(event));
                 }
             };
 
-            _socket.onmessage = (event: MessageEvent<any>) => {
+            scope.socket.onmessage = (event: MessageEvent<any>) => {
+                const terminal = scope.terminal;
                 const ev = JSON.parse(event.data);
                 // console.log(ev);
                 if (ev.error) {
@@ -155,45 +132,55 @@ export default function TerminalComponent({ node_id, instance_id }: TerminalComp
                 if (ev.event == "term" && terminal) {
                     terminal.write(ev.data);
                 } else if (ev.event == "open_terminal") {
-                    console.log("@@@@@@@@@@@@@@@Opened and resize@@@@@@@@@@@@@@@@@", ev.channel_id);
-                    setChannelId(ev.channel_id);
-                    setTimeout(() => window.dispatchEvent(new Event("resize")), 1000);
+                    console.log("Open Terminal", ev.channel_id);
+                    scope.channel_id = ev.channel_id;
+                    window.dispatchEvent(new Event("resize"));
                 }
             };
-            _socket.onerror = (event) => {
+            scope.socket.onerror = (event) => {
                 console.info("WebSocket error:", event);
             };
 
-            _socket.onclose = () => {
+            scope.socket.onclose = () => {
                 console.info("WebSocket closed");
             };
-            // return ()=> {
-            //     _socket.close();
-            //     terminal.dispose();
-            // }
         }
-        // return () => {
-        //     console.log("closed terminal");                
-        // };
-}, [node_id, channel_id, instance_id]);
 
-    return <Box sx={{ width: "100%", padding:1 }}>
+    }
+
+
+
+}
+
+
+export default function TerminalComponent({ node_id, instance_id, is_instance_terminal }: TerminalComponentProps) {
+    const ref = useRef<HTMLDivElement>();
+    const [terminal_instance, setTerminalInstance] = useState<TerminalInstance>(new TerminalInstance(is_instance_terminal));
+    // console.log("TerminalComponent",ref.current, node_id, instance_id, is_instance_terminal);
+    useEffect(() => {
+        terminal_instance.handler(ref.current, WS_URL, node_id, instance_id);
+    }, [terminal_instance, node_id, instance_id, is_instance_terminal, ref.current]);
+
+    return <Box sx={{ width: "100%", padding: 0 }}>
         <Box sx={{ width: "100%", textAlign: "right" }}>
-            <Button
-                sx={{ width: 100, marginLeft: 1, mt: 1, mb: 1 }}
+            {/* <Button
+                sx={{ width: 100, ml: 1, mt: 1, mb: 1 }}
+                variant="outlined"
+                onClick={() => {
+                    setTerminalInstance(new TerminalInstance(is_instance_terminal));
+                }}
+                color="primary"
+            >Refresh</Button> */}
+            {/* <Button
+                sx={{ width: 100, ml: 1, mt: 1, mb: 1, mr: 1 }}
                 variant="outlined"
                 onClick={() => { }}
                 color="primary"
-            >Refresh</Button>
-            <Button
-                sx={{ width: 100, marginLeft: 1, mt: 1, mb: 1, mr: 1 }}
-                variant="outlined"
-                onClick={() => { }}
-                color="primary"
-            >Connect</Button>
+            >Connect</Button> */}
         </Box>
-        <Box sx={{ width: "calc(100% - 10px)",padding: "10px", marginBottom:"50px", backgroundColor: "black"  }}>
-            <Box sx={{ width:"100%", height: "300px", }} ref={ref} />
+        <Box sx={{ width: "calc(100%)", borderRadius: 0, pd: 0, mb: 0, backgroundColor: "black" }}>
+            <Box sx={{ width: "100%", height: "300px", }} ref={ref} />
         </Box>
     </Box>;
 }
+

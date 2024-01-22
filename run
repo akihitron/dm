@@ -63,19 +63,21 @@ if $arg_g; then
 fi
 if $arg_u; then
   echo "================ Clear global packages ================"
-  npm -g uninstall npm-upgrade
-  npm -g uninstall nodemon
   npm -g uninstall pm2
   rm -rf ~/.pm2
-  npm -g uninstall swc-node
-  npm -g uninstall pkg
+
+  # npm -g uninstall npm-upgrade
+  # npm -g uninstall nodemon
+  # npm -g uninstall swc-node
+  # npm -g uninstall pkg
 
   echo "================ Install global packages ================"
-  npm -g install npm-upgrade
-  npm -g install nodemon
   npm -g install pm2
-  npm -g install swc-node
-  npm -g install pkg
+
+  # npm -g install npm-upgrade
+  # npm -g install nodemon
+  # npm -g install swc-node
+  # npm -g install pkg
 
   echo "================ Front end ================"
   cd frontend && rm -rf node_modules && npm-upgrade -p && npm install && npm dedup && npm audit

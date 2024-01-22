@@ -217,6 +217,8 @@ export class WSChannel {
     last_updated: number = Date.now();
     client_ws: WebSocket | null = null;
     server_ws: WebSocket | null = null;
+    client_timestamp: number = Date.now();
+    server_timestamp: number = Date.now();
     constructor(channel_id: string) {
         this.id = channel_id;
     }
@@ -227,6 +229,8 @@ export class WSChannel {
                     this.client_ws.send(data);
                 }
                 this.left_queue = [];
+                // Server(Alive) => Client
+                this.server_timestamp = Date.now();
             }
         }
         if (this.server_ws) {
@@ -235,6 +239,9 @@ export class WSChannel {
                     this.server_ws.send(data);
                 }
                 this.right_queue = [];
+
+                // Client(Alive) => Server
+                this.client_timestamp = Date.now();
             }
         }
     }

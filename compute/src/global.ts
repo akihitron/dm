@@ -11,6 +11,15 @@ import _node_fetch from "isomorphic-fetch";
 export const node_fetch = _node_fetch;
 const exec = util.promisify(require("child_process").exec);
 
+
+export function uuidv4() {
+	return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+		let r = (Math.random() * 16) | 0,
+			v = c == 'x' ? r : (r & 0x3) | 0x8;
+		return v.toString(16);
+	});
+}
+
 export class WSChannel {
     id: string;
     node_id: string;
@@ -58,6 +67,8 @@ async function HTTP_POST(url: string, body: any) {
                 // Gateway timeout
                 logger.log("Gateway timeout(504)");
                 return { error: "GATEWAY_TIMEOUT" };
+            } else if (res.status == 502) {
+                return { error: "BAD_GATEWAY" };
             } else {
                 logger.log(url, "Status:", res.status);
                 logger.log(await res.text());
@@ -118,4 +129,5 @@ export default {
     xml2json,
     node_fetch,
     scan_ports,
+    uuidv4,
 }

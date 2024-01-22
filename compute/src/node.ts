@@ -29,6 +29,7 @@ export class ComputeNode {
     timers: any = {};
     web_socket_is_observing = false;
     ws: null | WebSocket = null;
+    session: string | undefined = undefined;
     constructor(config: any) {
         this.config = config;
         this.driver = CreateDriver(config, config.driver);
@@ -40,8 +41,10 @@ export class ComputeNode {
 
 
 
-    observe_websocket(url: string) {
+    observe_websocket(url: string, session:string|undefined=undefined) {
         if (this.web_socket_is_observing) return;
+        const _session = session||this.session;
+        this.session = _session;
         this.web_socket_is_observing = true;
         const WSChannelTable = this.WSChannelTable;
         const ORIGIN_URL_OBJ = new URL(url);
@@ -52,9 +55,9 @@ export class ComputeNode {
         const ws = new WebSocket(WS_URL, {
             headers: { Cookie: G.GetClientCookie() }
         });
-        ws.addEventListener("error", (event) => {
-            console.log("WebSocket error: ", event);
-        });
+        // ws.addEventListener("error", (event) => {
+        //     console.log("WebSocket error: ", event);
+        // });
 
 
         ws.on("open", () => {
@@ -63,7 +66,13 @@ export class ComputeNode {
         });
 
         ws.on("error", (e) => {
-            logger.error("WS:error", e);
+            if (e.message.includes("502")) {
+                logger.log("Disconnected.");
+                this.web_socket_is_observing = false;
+            } else {
+                debugger;
+                logger.error("WS:error", e);
+            }
         });
 
         ws.on("message", (data: string) => {
@@ -160,10 +169,12 @@ export class ComputeNode {
 
         ws.on("close", (e) => {
             logger.log("WS:close", e);
-            this.web_socket_is_observing = false;
             setTimeout(() => {
-                this.observe_websocket(url);
-            }, 2000);
+                this.web_socket_is_observing = false;
+                if (_session == this.session) {
+                    this.observe_websocket(url, undefined);
+                }
+            }, 4000);
         });
 
         this.ws = ws;
@@ -429,14 +440,18 @@ export class ComputeNode {
             const body = JSON.stringify({ api_key_id, api_key_secret, node_id });
             return await G.node_fetch(path.join(end_point, "v1/user/login"), { method: "POST", headers: { Cookie: G.GetClientCookie(), "Content-Type": "application/json" }, body: body })
                 .then(async (res) => {
-                    logger.success("Login-StatusCode:", res.status);
                     if (res.status == 200) {
+                        logger.success("Login-StatusCode:", res.status);
                         const _cookies = res.headers.get("set-cookie");
                         if (_cookies) {
                             G.SetClientCookie(_cookies);
                         }
                         return res.json();
+                    } else if (res.status == 502) {
+                        logger.success("Login-Error:", res.status);
+                        return { error: "Request error." };
                     }
+                    logger.success("Login-Error:", res.status);
                     logger.log("TEXT: ", await res.text());
                     return { error: "Request error." };
                 })
@@ -549,7 +564,7 @@ export class ComputeNode {
         }
     }
 
-    async start_long_polling(config: any) {
+    async start_long_polling(config: any, session:string) {
         const manipulator = config.manipulator;
         const end_point = manipulator.end_point;
         const driver = this.driver;
@@ -580,6 +595,7 @@ export class ComputeNode {
                             // Session expired
                             logger.error(j.error);
                             this.login_with_api_key(config.api_key_id, config.api_key_secret, config.node_id).then((r) => {
+                                debugger;
                                 logger.success(" Login:", r);
                                 if (r === true) {
                                     setTimeout(loop, 1000);
@@ -638,6 +654,8 @@ export class ComputeNode {
                     }
                 })
                 .catch((e: any) => {
+                    debugger;
+
                     const code = e.cause?.code || e.code;
                     if (code == "UND_ERR_HEADERS_TIMEOUT") {
                         logger.log("Poll(timeout)");
@@ -660,7 +678,7 @@ export class ComputeNode {
         while (1) {
             const logged_in = await this.login_with_api_key(config.api_key_id, config.api_key_secret, config.node_id);
             if (logged_in === true) {
-                logger.success(`First login:(${counter++})`, logged_in);
+                logger.success(`Login:(${counter++})`, logged_in);
                 await this.associate(config);
                 if (this.timers.associate) clearInterval(this.timers.associate);
                 this.timers.associate = setInterval(() => {
@@ -672,11 +690,11 @@ export class ComputeNode {
                 logger.error("\n Exit.\n\n\n");
                 process.exit(1);
             } else {
-                logger.error(` First login:(${counter++})`, logged_in);
+                logger.error(` Login:(${counter++})`, logged_in);
                 await G.sleep(1000 * (5 + Math.min(counter * counter, 30)));
             }
         }
-        this.observe_websocket(config.manipulator.end_point);
+        this.observe_websocket(config.manipulator.end_point, session);
 
         await loop();
     }
@@ -699,7 +717,6 @@ export class ComputeNode {
         const compute_node = this;
         await compute_node.refresh(config);
         // Ignore driver mismatch and no GPU. Just check gpu manipulator commands.
-        compute_node.start_long_polling(config);
-
+        compute_node.start_long_polling(config, G.uuidv4());
     }
 }
